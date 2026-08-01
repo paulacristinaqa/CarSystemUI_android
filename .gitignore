@@ -1,0 +1,33 @@
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+.gradle/
+.kotlin/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local build output
+build/
+out/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Editor files
+.vscode/
+*.swp
+*.swo
+*~
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+
+# Logs and local runtime artifacts
+*.log
+
+# File created when launching Android emulators
+read-snapshot.txt
