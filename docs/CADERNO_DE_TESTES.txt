@@ -1,0 +1,1064 @@
+CADERNO DE TESTES — CARSYSTEMUI / ANDROID AUTOMOTIVE OS
+Versão: 1.0
+Objetivo: orientar aprendizado, planejamento, execução e registro de testes
+
+===============================================================================
+1. PROPÓSITO E PRINCÍPIOS
+===============================================================================
+
+Este caderno é um guia inicial para testar o CarSystemUI. Ele não substitui os
+requisitos do produto, normas aplicáveis, avaliação em veículo real ou revisão
+de especialistas em segurança automotiva.
+
+Princípios:
+
+- Testar é investigar riscos, e não apenas seguir passos.
+- Um teste aprovado demonstra somente o cenário e ambiente executados.
+- Resultado esperado deve vir de requisito, design ou comportamento aprovado.
+- “Não ocorreu erro” não é evidência suficiente.
+- Teste bloqueado não é teste aprovado.
+- Evidências devem permitir reprodução e preservar privacidade.
+- Automatizar não significa necessariamente testar melhor.
+- Deve-se usar o menor nível de teste que forneça confiança suficiente.
+
+REGRA OBRIGATÓRIA PARA AUTOMAÇÃO
+
+Não criar diretamente testes automatizados. Antes de qualquer implementação,
+explicar objetivo, risco, tipo, nível, ferramenta, estrutura do código, dados,
+execução, interpretação, limitações e manutenção. Em seguida, apresentar um
+exemplo pequeno e aguardar confirmação explícita.
+
+===============================================================================
+2. ROTEIRO DE APRENDIZADO — DO INICIANTE AO ESPECIALISTA
+===============================================================================
+
+Nível 1 — Fundamentos
+
+- Diferença entre erro, defeito, falha e causa raiz.
+- Requisito, critério de aceitação, risco e oráculo de teste.
+- Cenário positivo, negativo, limite, alternativo e recuperação.
+- Severidade versus prioridade.
+- Como escrever um caso de teste e um bom relatório de defeito.
+
+Prática:
+Executar CT-001 a CT-005 manualmente e registrar evidências.
+
+Nível 2 — Técnicas de desenho
+
+- Particionamento de equivalência.
+- Análise de valor-limite.
+- Tabela de decisão.
+- Transição de estados.
+- Teste combinatório.
+- Teste baseado em experiência e sessão exploratória.
+
+Prática:
+Escolher troca de usuário ou indicadores de privacidade e modelar estados,
+eventos, transições válidas e transições inválidas.
+
+Nível 3 — Android e AAOS
+
+- Processo SystemUI, ciclo de vida e componentes privilegiados.
+- Soong, atest, instrumentação e Robolectric.
+- adb, logcat, dumpsys, usuários, displays e overlays.
+- CarService, permissões automotivas e dependências de hardware.
+- Diferença entre emulador, bancada e veículo.
+
+Prática:
+Executar uma suíte existente, localizar um teste pequeno e explicar suas partes,
+sem modificar nem criar automação.
+
+Nível 4 — Automação funcional
+
+- Pirâmide de testes e seleção do nível correto.
+- Arrange-Act-Assert, isolamento e determinismo.
+- Fakes, stubs, mocks, spies e seus riscos.
+- Sincronização, concorrência e causas de flakiness.
+- Testabilidade e manutenção.
+
+Prática:
+Projetar primeiro caso automatizado, revisar, obter confirmação e somente então
+implementar em sessão posterior.
+
+Nível 5 — Testes não funcionais
+
+- Performance: latência, throughput, CPU, memória, jank e percentis.
+- Confiabilidade: duração, repetição, recuperação e falhas intermitentes.
+- Acessibilidade, compatibilidade, segurança, privacidade e usabilidade.
+- Baseline, orçamento, ruído experimental e regressão estatística.
+
+Prática:
+Criar um plano de medição sem escrever automação.
+
+Nível 6 — Especialização
+
+- Estratégia de qualidade baseada em risco.
+- Arquitetura de testes e integração contínua.
+- Observabilidade e diagnóstico.
+- Métricas úteis, custo de manutenção e governança de flaky tests.
+- Análise de incidentes e prevenção sistêmica.
+- Particularidades de segurança e distração em sistemas automotivos.
+
+Critério de progressão:
+A progressão não depende de decorar ferramentas. O aprendiz deve conseguir
+explicar o risco, escolher uma técnica, interpretar evidências, reconhecer
+limitações e comunicar uma conclusão honesta.
+
+===============================================================================
+3. TIPOS E NÍVEIS DE TESTE
+===============================================================================
+
+Teste unitário/host:
+Verifica lógica pequena e isolada. É rápido e deve ser preferido quando Android
+real, CarService e hardware não são necessários.
+
+Robolectric:
+Executa código Android em JVM de host com simulações do framework. Neste projeto
+há o módulo CarSystemUIRoboTests. É útil, mas não prova comportamento real do
+dispositivo.
+
+Teste instrumentado:
+Executa com framework Android em dispositivo/emulador. Neste projeto há o módulo
+CarSystemUITests. É mais representativo e geralmente mais lento.
+
+Teste de integração:
+Verifica colaboração entre componentes, serviços e camadas. Pode exigir
+CarService, usuários, displays, apps ou dados preparados.
+
+Teste de sistema/ponta a ponta:
+Verifica uma jornada completa no produto. Tem alto valor para caminhos críticos,
+mas maior custo, variabilidade e dificuldade de diagnóstico.
+
+Teste exploratório:
+Investigação guiada por um objetivo (charter), sem ficar limitada a passos
+predefinidos. Deve ter duração, escopo, notas e descobertas.
+
+Teste de regressão:
+Repete verificações relevantes após uma alteração. Não é um nível: pode conter
+testes unitários, integração, sistema, manuais e automatizados.
+
+Testes não funcionais:
+Avaliam como o sistema opera: performance, estabilidade, acessibilidade,
+segurança, privacidade, compatibilidade e usabilidade.
+
+===============================================================================
+4. PREPARAÇÃO DO AMBIENTE
+===============================================================================
+
+Preencher antes da execução:
+
+Data e hora:
+Responsável:
+Revisão/commit:
+Branch AOSP:
+Lunch target:
+Build fingerprint:
+Tipo do alvo: [emulador / bancada / veículo]
+Modelo/identificador:
+Versão do Android:
+Display(s) e resolução(ões):
+Usuário inicial e usuários existentes:
+Idioma/região:
+Modo: [claro / noturno]
+Escala de fonte/densidade:
+RROs ativos:
+Apps auxiliares:
+Conectividade disponível:
+Limitações conhecidas:
+
+Comandos úteis de identificação:
+
+  adb devices
+  adb shell getprop ro.build.fingerprint
+  adb shell am get-current-user
+  adb shell cmd user list
+  adb shell cmd overlay list
+  adb shell pidof com.android.systemui
+
+Captura básica de diagnóstico:
+
+  adb logcat
+  adb shell dumpsys window
+  adb shell dumpsys activity
+  adb shell dumpsys meminfo com.android.systemui
+
+Observação:
+Filtros, buffers e permissões de log variam por build. Nunca publique logs sem
+verificar dados pessoais, identificadores, contatos, notificações ou segredos.
+
+===============================================================================
+5. MODELO DE CASO E REGISTRO
+===============================================================================
+
+ID:
+Título:
+Prioridade: [P0 crítico / P1 alto / P2 médio / P3 baixo]
+Tipo:
+Área:
+Risco coberto:
+Referência/requisito:
+Pré-condições:
+Dados:
+Passos:
+Resultado esperado:
+Resultado observado:
+Status: [Aprovado / Reprovado / Bloqueado / Não executado]
+Ambiente/build:
+Evidências:
+Defeito relacionado:
+Observações:
+
+Regras de escrita:
+
+- Um passo deve representar uma ação observável.
+- O esperado deve ser específico e verificável.
+- Evitar “funciona corretamente”; dizer o que aparece, muda ou permanece.
+- Separar casos quando as pré-condições e objetivos forem muito diferentes.
+- Não colocar senhas, PINs reais ou dados pessoais na evidência.
+
+===============================================================================
+6. CASOS DE SMOKE TEST — P0
+===============================================================================
+
+CT-001 — Inicialização básica do SystemUI
+
+Objetivo:
+Confirmar que o processo inicia e permanece estável após boot ou implantação.
+
+Pré-condições:
+Build implantado; alvo AAOS suportado; adb conectado.
+
+Passos:
+1. Reiniciar o dispositivo.
+2. Aguardar o boot ser concluído.
+3. Verificar visualmente as superfícies persistentes do SystemUI.
+4. Executar adb shell pidof com.android.systemui.
+5. Observar o logcat por pelo menos dois minutos sem interação.
+
+Resultado esperado:
+O boot termina; o processo existe; superfícies essenciais aparecem; não ocorre
+ciclo de crash, ANR, tela permanentemente preta ou reinício contínuo.
+
+Evidências:
+Tempo aproximado, PID, captura da tela e logs em caso de falha.
+
+CT-002 — Navegação principal pelas system bars
+
+Pré-condições:
+Dispositivo desbloqueado; launcher disponível.
+
+Passos:
+1. Abrir um aplicativo permitido.
+2. Acionar Home.
+3. Abrir novamente um aplicativo.
+4. Acionar Voltar quando esse controle existir.
+5. Abrir o app grid quando disponível.
+
+Resultado esperado:
+Cada controle visível responde uma vez por acionamento, leva ao destino esperado
+e não deixa sobreposição ou estado selecionado incorreto.
+
+CT-003 — Exibição e fechamento do painel de notificações
+
+Pré-condições:
+Ao menos uma notificação de teste não sensível.
+
+Passos:
+1. Abrir o painel de notificações pelo meio suportado.
+2. Verificar título, app, horário/estado e ações esperadas.
+3. Fechar o painel.
+4. Reabri-lo.
+
+Resultado esperado:
+O painel abre e fecha sem travar; conteúdo autorizado é legível; estado
+permanece coerente; navegação principal não fica bloqueada.
+
+CT-004 — Controle básico de volume
+
+Pré-condições:
+Áudio e grupo de volume suportados no alvo.
+
+Passos:
+1. Acionar aumento de volume.
+2. Observar indicador e nível.
+3. Acionar redução de volume.
+4. Aguardar o fechamento automático da UI, se aplicável.
+
+Resultado esperado:
+Indicador aparece no display correto; valor e direção correspondem à ação; UI
+desaparece conforme comportamento definido; não há crash.
+
+CT-005 — Troca básica de usuário
+
+Pré-condições:
+Dois usuários de teste configurados; nenhum dado real.
+
+Passos:
+1. Abrir o seletor de usuários.
+2. Selecionar o segundo usuário.
+3. Aguardar a conclusão.
+4. Confirmar identidade visual e conteúdo do usuário ativo.
+5. Retornar ao usuário inicial.
+
+Resultado esperado:
+Transição é apresentada; usuário correto torna-se ativo; dados visíveis do
+usuário anterior não vazam; retorno também funciona.
+
+===============================================================================
+7. CASOS FUNCIONAIS ORIENTADOS POR ÁREA
+===============================================================================
+
+CT-010 — Posição das barras controlada por RRO
+
+Pré-condições:
+RRO de uma posição instalado; conhecer configuração anterior.
+
+Passos:
+1. Registrar overlays ativos.
+2. Habilitar somente o RRO alvo para o usuário correto.
+3. Reiniciar SystemUI se necessário.
+4. Verificar posição, dimensões, toque e conteúdo.
+5. Desabilitar/restaurar configuração.
+
+Resultado esperado:
+A barra aparece na posição prevista; elementos permanecem alcançáveis; regiões
+de toque acompanham o visual; restauração retorna ao estado inicial.
+
+CT-011 — Política de persistência das barras
+
+Cobertura:
+Modos immersive, immersive_with_nav e non_immersive, um por execução.
+
+Resultado esperado:
+Cada modo respeita a política documentada nas transições entre launcher, app e
+atividade imersiva, sem deixar controles inacessíveis indevidamente.
+
+CT-020 — Notificação comum
+
+Passos essenciais:
+Publicar notificação de teste, observar indicador/chip, abrir painel, acionar
+ação segura, dispensar e confirmar remoção.
+
+Resultado esperado:
+Estado é consistente entre chip, painel e app; não há duplicidade ou conteúdo
+remanescente.
+
+CT-021 — Heads-up notification
+
+Variações:
+Com outra UI aberta; múltiplas notificações; expiração; toque; dispensa.
+
+Resultado esperado:
+Heads-up aparece conforme prioridade/política, não bloqueia controles críticos,
+executa a ação correta e desaparece no momento esperado.
+
+CT-030 — Indicador de câmera
+CT-031 — Indicador de microfone
+CT-032 — Indicador de compartilhamento/cast
+
+Procedimento comum:
+1. Iniciar uso legítimo do sensor/recurso por app de teste.
+2. Verificar surgimento, ícone, identificação e display.
+3. Encerrar o uso.
+4. Verificar remoção/transição.
+5. Repetir após troca de usuário quando aplicável.
+
+Resultado esperado:
+Indicador acompanha o estado real sem atraso excessivo definido pelo produto,
+não atribui uso ao app/usuário incorreto e não permanece após encerramento.
+
+CT-040 — Ícones de Wi-Fi, Bluetooth e rede móvel
+
+Variações:
+Desconectado, conectando, conectado, sinal fraco/forte quando simulável e
+indisponibilidade.
+
+Resultado esperado:
+Ícone e estado acessível correspondem à condição; transições não geram ícones
+duplicados, presos ou no display errado.
+
+CT-050 — HVAC: temperatura, ventilação e assento
+
+Pré-condições:
+Propriedades HVAC suportadas ou simulação aprovada.
+
+Passos:
+Alterar uma propriedade por vez, observar comando, retorno de estado, limites e
+indisponibilidade; repetir para zona ocupante aplicável.
+
+Resultado esperado:
+Valor exibido corresponde ao retorno do sistema; limites são respeitados; zona
+correta é afetada; indisponibilidade não causa crash nem informação enganosa.
+
+CT-060 — Keyguard do condutor
+CT-061 — Keyguard do passageiro
+CT-062 — Tentativas inválidas e lockout
+
+Resultado esperado:
+Credenciais corretas desbloqueiam apenas o contexto autorizado; inválidas não
+concedem acesso; lockout e mensagens seguem política; PIN não aparece em logs ou
+capturas compartilhadas.
+
+CT-070 — Chamada em andamento
+
+Variações:
+Entrada, ativa, encerrada, chamada simultânea quando suportada e falha do app de
+telefone.
+
+Resultado esperado:
+Estado minimizado/indicador acompanha chamada, ações vão para o destino correto
+e o encerramento remove conteúdo residual.
+
+CT-080 — Múltiplos displays
+
+Passos:
+1. Registrar displays e papéis.
+2. Abrir superfícies relevantes em cada zona.
+3. Interagir no display do condutor e do passageiro.
+4. Desconectar/reconectar display somente quando o ambiente permitir.
+
+Resultado esperado:
+Conteúdo aparece no display e zona previstos; entrada não cruza indevidamente;
+remoção de display é tratada sem crash.
+
+CT-090 — Rotação, resolução e densidade suportadas
+
+Resultado esperado:
+Layout não sobrepõe conteúdo essencial; estados sobrevivem à mudança conforme
+requisito; áreas de toque permanecem alinhadas.
+
+CT-091 — Idioma longo e RTL
+
+Dados:
+Português/Alemão como exemplos de expansão e Árabe/Hebraico para RTL, conforme
+suporte do produto.
+
+Resultado esperado:
+Sem truncamento crítico, sobreposição ou ordem incorreta; ícones direcionais e
+alinhamentos respeitam RTL quando aplicável.
+
+CT-092 — Modo noturno
+
+Resultado esperado:
+Cores e recursos mudam conforme configuração; conteúdo permanece legível;
+estados e controles não desaparecem.
+
+===============================================================================
+8. CASOS NEGATIVOS, LIMITES E RECUPERAÇÃO
+===============================================================================
+
+CT-100 — Reinício controlado do SystemUI
+
+Executar somente em ambiente de desenvolvimento recuperável.
+
+Passos:
+1. Iniciar em estado conhecido.
+2. Registrar logcat.
+3. Reiniciar o processo pelo procedimento aprovado.
+4. Observar restauração de barras, painéis e indicadores.
+
+Resultado esperado:
+Processo retorna sem ciclo de crash; superfícies essenciais são reconstruídas;
+estado persistente permitido é restaurado e estado temporário inválido é limpo.
+
+CT-101 — CarService temporariamente indisponível
+
+Restrição:
+Planejar com especialista; não executar em veículo de uso real.
+
+Resultado esperado:
+CarSystemUI degrada de forma segura, registra diagnóstico útil e se recupera
+quando o serviço retorna, sem mostrar dados falsos como se fossem atuais.
+
+CT-102 — Eventos repetidos rapidamente
+
+Exemplos:
+Toques repetidos, volume, abertura/fechamento de painel, mudança rápida de estado
+de conectividade.
+
+Resultado esperado:
+Sem ações duplicadas perigosas, crash, ANR, vazamento de janelas ou estado final
+incoerente.
+
+CT-103 — Limites de listas
+
+Exemplos:
+Nenhuma notificação, uma notificação, muitas notificações, muitos usuários.
+
+Resultado esperado:
+Estado vazio é compreensível; listas rolam corretamente; seleção e foco não são
+perdidos; desempenho percebido não degrada de forma anormal.
+
+CT-104 — App ou dado esperado ausente
+
+Resultado esperado:
+Controle dependente é ocultado, desabilitado ou informa indisponibilidade
+conforme requisito, sem lançar atividade inválida ou quebrar a system bar.
+
+===============================================================================
+9. TESTES EXPLORATÓRIOS
+===============================================================================
+
+SE-01 — Transições e sobreposições
+
+Charter:
+Explorar como painéis, heads-up, volume, keyguard e system bars competem por
+espaço, foco e prioridade.
+
+Duração:
+45 minutos.
+
+Observar:
+Sobreposição, foco preso, toque atravessando camada, animação interrompida,
+estado visual residual e comportamento ao pressionar Home/Voltar.
+
+SE-02 — Troca de usuário sob atividade
+
+Charter:
+Explorar troca de usuário enquanto há mídia, notificação, conectividade,
+indicador de privacidade ou painel aberto.
+
+Duração:
+45 minutos.
+
+Observar:
+Vazamento de dados, estado atribuído ao usuário errado, UI antiga residual,
+travamento e tempo de recuperação.
+
+SE-03 — Configurações de tela
+
+Charter:
+Explorar combinações suportadas de modo noturno, idioma, RTL, densidade, fonte,
+orientação e múltiplos displays.
+
+Duração:
+60 minutos.
+
+Registro de sessão:
+
+Data:
+Testador:
+Charter:
+Build:
+Tempo utilizado:
+Áreas visitadas:
+Dados/variações:
+Descobertas:
+Perguntas:
+Defeitos:
+Riscos não cobertos:
+Próxima sessão sugerida:
+
+===============================================================================
+10. PLANO INICIAL DE TESTES NÃO FUNCIONAIS
+===============================================================================
+
+IMPORTANTE:
+Os itens abaixo são propostas de investigação, não possuem automaticamente
+limites de aprovação. Primeiro medir baseline no produto alvo e aprovar metas.
+
+Performance:
+
+- Tempo entre início do SystemUI e superfícies essenciais disponíveis.
+- Latência de abertura/fechamento de painéis.
+- Latência visual após volume e troca de usuário.
+- Frames lentos/jank em animações críticas.
+- CPU e memória em repouso e durante jornadas.
+- Crescimento de memória após ciclos repetidos.
+
+Confiabilidade:
+
+- Reinícios repetidos do SystemUI.
+- Ciclos de troca de usuário.
+- Ciclos de abrir/fechar painéis.
+- Longa duração com notificações e mudanças de conectividade.
+- Recuperação após dependências temporariamente indisponíveis.
+
+Acessibilidade e usabilidade:
+
+- Leitor de tela e descrições.
+- Ordem de foco e controle rotativo.
+- Contraste e modo noturno.
+- Escala de fonte e truncamento.
+- Tamanho e separação dos alvos de toque.
+- Clareza de feedback e prevenção de distração.
+
+Segurança e privacidade:
+
+- Isolamento entre usuários e displays.
+- Exposição de conteúdo sensível em notificações/keyguard.
+- Indicadores de sensores.
+- Componentes exportados e permissões.
+- Sanitização de logs e evidências.
+
+Compatibilidade:
+
+- Produtos, resoluções, densidades e orientações suportados.
+- RROs e combinações oficialmente permitidas.
+- Modos com e sem hardware/serviço opcional.
+
+Modelo para uma medição:
+
+Pergunta:
+Risco:
+Jornada:
+Métrica e unidade:
+Ferramenta:
+Ambiente controlado:
+Preparação/aquecimento:
+Número de repetições:
+Dados brutos:
+Mediana:
+Percentil 90/95/99:
+Dispersão:
+Baseline:
+Limite aprovado:
+Resultado:
+Limitações:
+
+===============================================================================
+11. COMO RELATAR UM DEFEITO
+===============================================================================
+
+Título:
+[Área] Comportamento observado em condição específica
+
+Exemplo:
+[System Bar] Botão Home deixa de responder após troca para usuário passageiro
+
+Conteúdo:
+
+Ambiente/build:
+Severidade:
+Frequência: [sempre / x de y tentativas / intermitente]
+Pré-condições:
+Passos para reproduzir:
+1.
+2.
+3.
+
+Resultado observado:
+Resultado esperado:
+Impacto:
+Primeira versão conhecida:
+Contorno:
+Evidências:
+Logs sanitizados:
+Hipótese (identificar claramente como hipótese):
+
+Severidade sugerida:
+
+- Crítica: impede boot/uso essencial, risco grave, perda ou exposição importante.
+- Alta: quebra função central sem contorno razoável.
+- Média: função afetada com contorno ou impacto limitado.
+- Baixa: problema cosmético ou de baixo impacto.
+
+Prioridade deve ser definida considerando severidade, frequência, alcance,
+release e custo. Severidade e prioridade não são sinônimos.
+
+===============================================================================
+12. CHECKLIST DE ENCERRAMENTO DE UMA EXECUÇÃO
+===============================================================================
+
+[ ] Ambiente e build registrados.
+[ ] Pré-condições realmente atendidas.
+[ ] Casos executados possuem resultado observado.
+[ ] Bloqueados não foram contados como aprovados.
+[ ] Falhas foram repetidas quando seguro.
+[ ] Evidências possuem horário e contexto.
+[ ] Logs e imagens foram sanitizados.
+[ ] Defeitos possuem passos e impacto.
+[ ] Riscos não cobertos foram registrados.
+[ ] Configurações/RROs foram restaurados.
+[ ] Aprendizados e próximos testes foram anotados.
+
+===============================================================================
+13. PRÓXIMA AULA/ATIVIDADE RECOMENDADA
+===============================================================================
+
+Tema:
+Fundamentos de testing aplicados ao primeiro smoke test do CarSystemUI.
+
+Atividade:
+
+1. Preencher a ficha de ambiente.
+2. Estudar requisito, risco, oráculo e evidência.
+3. Executar CT-001 manualmente.
+4. Comparar esperado e observado.
+5. Ler um trecho de log sem tentar automatizar.
+6. Produzir um relatório curto da execução.
+
+Somente depois:
+Executar CT-002 a CT-005 e iniciar o inventário das suítes existentes. A primeira
+automação será planejada e explicada em uma etapa separada.
+
+===============================================================================
+14. CASO MANUAL — SHOWCASE DE ESTADOS DO VEÍCULO
+===============================================================================
+
+CT-SHOW-001 — Percorrer o ciclo de energia simulado
+
+Objetivo:
+Aprender teste de transição de estados verificando a sequência permitida, as
+informações apresentadas e o retorno seguro ao estado inicial.
+
+Prioridade: P1 alto no aplicativo educacional
+Tipo: funcional manual / transição de estados
+Área: showcase / estado de energia
+Risco coberto:
+A interface apresentar um estado incompatível ou permitir uma transição não
+prevista, ensinando uma representação incorreta do comportamento automotivo.
+
+Pré-condições:
+
+- Projeto showcase sincronizado no Android Studio.
+- Emulador ou dispositivo Android disponível.
+- Aplicativo iniciado por Run > Run 'app'.
+
+Dados:
+Não são necessários dados externos; todos os valores são simulados localmente.
+
+Passos e resultados esperados:
+
+1. Iniciar o aplicativo.
+   Esperado: aparece Desligado; velocidade é 0 km/h; marcha e bateria mostram
+   traço; o botão Desligar veículo está desabilitado.
+2. Pressionar Ligar acessórios.
+   Esperado: aparece Acessórios; condução permanece indisponível; marcha e
+   bateria continuam mostrando traço.
+3. Pressionar Ligar ignição.
+   Esperado: aparece Ignição ligada; marcha mostra P e bateria mostra 78%.
+4. Pressionar Deixar pronto.
+   Esperado: aparece Pronto para conduzir; o botão Veículo pronto fica
+   desabilitado e não existe transição de avanço adicional.
+5. Pressionar Desligar veículo.
+   Esperado: o aplicativo retorna a Desligado e oculta novamente marcha e
+   bateria.
+6. Repetir os passos 2 e 3 e então pressionar Desligar veículo.
+   Esperado: também é possível desligar a partir de um estado intermediário.
+7. Alterar orientação ou usar um dispositivo de menor altura.
+   Esperado: o conteúdo continua acessível por rolagem, sem impedir o uso dos
+   controles.
+8. Observar o rodapé em qualquer estado.
+   Esperado: há aviso claro de que os dados não vêm de um veículo.
+
+Resultado observado:
+[Preencher durante a validação]
+
+Status: Não executado pela responsável
+Ambiente/build: [Preencher]
+Evidências: [Capturas ou vídeo curto, sem dados pessoais]
+Defeito relacionado: [Preencher se necessário]
+
+Perguntas para aprendizado após executar:
+
+1. Quais são os quatro estados encontrados?
+2. Qual ação provoca cada transição?
+3. Por que marcha e bateria não aparecem em todos os estados?
+4. O que diferencia o resultado esperado do resultado observado?
+5. Que cenário negativo ou de limite você acrescentaria?
+
+Observação:
+Este caso valida apenas a simulação local e a interface. Ele não comprova
+comunicação com ECU, VHAL, CarService, CAN, hardware ou veículo real.
+
+-------------------------------------------------------------------------------
+CT-SHOW-002 — Validar condução simulada e intertravamentos
+-------------------------------------------------------------------------------
+
+Objetivo:
+Praticar cenários positivos, negativos e valores-limite verificando marcha,
+velocidade e condições necessárias para desligar.
+
+Prioridade: P1 alto no aplicativo educacional
+Tipo: funcional manual / negativo / valor-limite / transição de estados
+Área: showcase / condução simulada
+Riscos cobertos:
+
+- Uma ação incompatível ficar disponível no estado atual.
+- A velocidade ultrapassar os limites definidos.
+- O veículo simulado desligar em movimento ou fora de P.
+
+Pré-condições:
+Aplicativo iniciado e sequência do CT-SHOW-001 executada até Pronto para
+conduzir, com marcha P e velocidade 0 km/h.
+
+Passos e resultados esperados:
+
+1. Observar o botão +10 km/h em P.
+   Esperado: fica desabilitado e a tela orienta selecionar D ou R.
+2. Selecionar N.
+   Esperado: N fica selecionado; aceleração continua desabilitada.
+3. Selecionar D e pressionar +10 km/h uma vez.
+   Esperado: marcha D, velocidade 10 km/h e troca de marchas desabilitada.
+4. Observar Desligar veículo enquanto estiver a 10 km/h em D.
+   Esperado: fica desabilitado e aparece orientação para parar e selecionar P.
+5. Pressionar Frear.
+   Esperado: velocidade retorna a 0 km/h; marchas ficam disponíveis; desligar
+   continua bloqueado porque a marcha ainda é D.
+6. Selecionar P.
+   Esperado: desligamento fica disponível.
+7. Selecionar R e pressionar +10 km/h.
+   Esperado: velocidade mostra 10 km/h e as mesmas proteções continuam ativas.
+   Nota: o showcase exibe magnitude da velocidade, não velocidade negativa.
+8. Frear até 0, selecionar D e pressionar +10 km/h repetidamente.
+   Esperado: a velocidade cresce em passos de 10 até 120 km/h e não ultrapassa
+   esse limite; ao atingir 120, o botão de aceleração fica desabilitado.
+9. Pressionar Frear repetidamente até 0 km/h.
+   Esperado: reduz em passos de 10, nunca fica negativa e o botão Frear fica
+   desabilitado em zero.
+10. Selecionar P e pressionar Desligar veículo.
+    Esperado: estado Desligado, velocidade 0 km/h e marcha indisponível na tela.
+
+Resultado observado:
+[Preencher durante a validação]
+
+Status: Não executado pela responsável
+Ambiente/build: [Preencher]
+Evidências: [Capturas dos bloqueios e limites]
+Defeito relacionado: [Preencher se necessário]
+
+Perguntas para aprendizado após executar:
+
+1. Quais passos são positivos e quais são negativos?
+2. Em quais passos usamos análise de valor-limite?
+3. Qual combinação de condições libera o desligamento?
+4. Por que um botão desabilitado também precisa ser testado?
+5. Quais diferenças você esperaria encontrar em um veículo real?
+
+Observação:
+Os intertravamentos são exemplos didáticos, não requisitos homologados. Um
+sistema real depende de arquitetura, especificações, hardware, sinais confiáveis
+e análises de segurança próprias do fabricante.
+
+-------------------------------------------------------------------------------
+CT-SHOW-003 — Validar combinação e prioridade dos alertas
+-------------------------------------------------------------------------------
+
+Objetivo:
+Aprender tabela de decisão verificando como energia, velocidade, porta e cinto
+se combinam para gerar zero, um ou dois alertas com severidades diferentes.
+
+Prioridade: P1 alto no aplicativo educacional
+Tipo: funcional manual / tabela de decisão / transição de severidade
+Área: showcase / central de alertas
+Riscos cobertos:
+
+- Um alerta necessário não aparecer.
+- Um alerta aparecer em condição não prevista.
+- A prioridade não aumentar quando o contexto se torna mais grave.
+- Um alerta ocultar indevidamente outro alerta simultâneo.
+
+Pré-condições:
+Aplicativo iniciado em Desligado, 0 km/h, porta fechada e cinto afivelado.
+
+Tabela de decisão:
+
+Regra | Energia   | Velocidade | Porta  | Cinto       | Resultado esperado
+R1    | Desligado | 0 km/h     | Fechada| Afivelado   | Nenhum alerta
+R2    | Desligado | 0 km/h     | Aberta | Afivelado   | Porta / Atenção
+R3    | Pronto    | 0 km/h     | Fechada| Desafivelado| Cinto / Atenção
+R4    | Pronto    | 0 km/h     | Aberta | Desafivelado| 2 alertas / Atenção
+R5    | Pronto    | 10 km/h    | Aberta | Afivelado   | Porta / Crítico
+R6    | Pronto    | 10 km/h    | Fechada| Desafivelado| Cinto / Crítico
+R7    | Pronto    | 10 km/h    | Aberta | Desafivelado| 2 alertas / Crítico
+
+Passos e resultados esperados:
+
+1. Confirmar as condições de R1 e observar a central.
+   Esperado: Nenhum alerta ativo.
+2. Ativar Porta do motorista aberta.
+   Esperado: alerta Porta do motorista aberta, severidade Atenção, orientando
+   fechar a porta antes do movimento.
+3. Fechar a porta, avançar a energia até Pronto e desafivelar o cinto.
+   Esperado: alerta de cinto com severidade Atenção.
+4. Abrir também a porta.
+   Esperado: os dois alertas ficam visíveis; nenhum substitui o outro.
+5. Fechar a porta, afivelar o cinto, selecionar D e acelerar até 10 km/h.
+   Esperado: nenhum alerta ativo.
+6. Abrir a porta em movimento.
+   Esperado: alerta da porta muda para Crítico e orienta parar em segurança.
+7. Fechar a porta e desafivelar o cinto.
+   Esperado: alerta crítico do cinto, sem alerta da porta.
+8. Abrir novamente a porta.
+   Esperado: dois alertas críticos aparecem simultaneamente.
+9. Afivelar o cinto.
+   Esperado: alerta do cinto desaparece imediatamente e o da porta permanece.
+10. Fechar a porta, frear até zero, selecionar P, desafivelar o cinto e abrir a
+    porta; em seguida, desligar o veículo.
+    Esperado: a porta continua aberta e gera Atenção; o cinto continua
+    desafivelado, mas seu alerta desaparece porque o estado deixou de ser Pronto.
+
+Resultado observado:
+[Preencher durante a validação]
+
+Status: Não executado pela responsável
+Ambiente/build: [Preencher]
+Evidências: [Uma captura para cada regra R1 a R7]
+Defeito relacionado: [Preencher se necessário]
+
+Perguntas para aprendizado após executar:
+
+1. Quantas combinações a tabela cobre e quais ficaram de fora?
+2. Qual condição faz a severidade mudar de Atenção para Crítico?
+3. Por que o alerta do cinto depende do estado Pronto neste simulador?
+4. O que deve acontecer quando uma condição deixa de existir?
+5. Como você provaria que dois alertas não escondem um ao outro?
+
+Observação:
+As regras são oráculos criados para este exercício. Em produto real, o oráculo
+deve vir de requisitos aprovados, análise de segurança, regulamentação e design
+do fabricante; não se deve inferi-lo apenas observando outro veículo.
+
+-------------------------------------------------------------------------------
+CT-SHOW-004 — Validar bateria e recarga EV nos valores-limite
+-------------------------------------------------------------------------------
+
+Objetivo:
+Praticar análise de valor-limite e transição de estados verificando consumo,
+alertas, conexão, recarga e bloqueio de condução.
+
+Prioridade: P1 alto no aplicativo educacional
+Tipo: funcional manual / valor-limite / negativo / transição de estados
+Área: showcase / bateria e recarga EV
+Riscos cobertos:
+
+- Percentual inválido abaixo de 0% ou acima de 100%.
+- Alerta mudar no valor errado.
+- Movimento ser permitido com bateria vazia ou cabo conectado.
+- Recarga ocorrer sem conexão ou em condição incompatível.
+
+Pré-condições:
+Nova execução do aplicativo, com 78%, P, 0 km/h e carregador desconectado.
+
+Valores-limite escolhidos:
+
+- 21%: imediatamente acima do limiar de bateria baixa.
+- 20%: primeiro valor que exige Atenção.
+- 11%: imediatamente acima do limiar crítico.
+- 10%: primeiro valor que exige Crítico.
+- 0% e 100%: limites absolutos da simulação.
+
+Passos e resultados esperados:
+
+1. Observar a carga inicial.
+   Esperado: 78%, sem alerta de bateria.
+2. Avançar até Pronto, selecionar D e acelerar uma vez.
+   Esperado: velocidade 10 km/h e bateria 77%.
+3. Tentar conectar o carregador em movimento.
+   Esperado: o interruptor fica desabilitado.
+4. Frear até zero e manter D.
+   Esperado: conexão continua desabilitada porque a marcha não é P.
+5. Selecionar P e conectar o carregador.
+   Esperado: aparece alerta informativo; seleção de marchas fica bloqueada.
+6. Pressionar Recarregar +10% três vezes.
+   Esperado: a carga chega a 100% e não ultrapassa o limite; o botão fica
+   desabilitado ao alcançar 100%.
+7. Desconectar e usar Simular -10% repetidamente até 20%.
+   Esperado: em 20%, aparece Bateria de tração baixa com severidade Atenção.
+   Observação: partindo de 100%, os passos atingem diretamente 20%; o valor 21%
+   pode ser observado futuramente pelo consumo de 1% após preparar 22%.
+8. Reduzir para 10%.
+   Esperado: o alerta muda para Bateria de tração crítica.
+9. Reduzir para 0% e tentar reduzir novamente.
+   Esperado: permanece em 0%, e o botão de redução fica desabilitado.
+10. Com carregador desconectado, tentar selecionar D e acelerar.
+    Esperado: é possível selecionar D, mas a aceleração fica desabilitada por
+    bateria vazia.
+11. Retornar a P, conectar o carregador e adicionar 10%.
+    Esperado: carga passa para 10%; permanece crítica; condução continua
+    bloqueada enquanto o carregador estiver conectado.
+12. Adicionar mais 10%, chegando a 20%, e depois mais 10%, chegando a 30%.
+    Esperado: em 20% o alerta é Atenção; em 30% o alerta de bateria desaparece.
+13. Desconectar o carregador.
+    Esperado: a carga permanece em 30% e o alerta informativo do conector some.
+
+Resultado observado:
+[Preencher durante a validação]
+
+Status: Não executado pela responsável
+Ambiente/build: [Preencher]
+Evidências: [Capturas em 20%, 10%, 0% e 100%]
+Defeito relacionado: [Preencher se necessário]
+
+Perguntas para aprendizado após executar:
+
+1. Por que testar 20% não substitui testar 21%?
+2. Quais limites são inclusivos neste requisito?
+3. Qual é a diferença entre carga baixa e carregador conectado?
+4. Que condições formam o intertravamento de conexão?
+5. Quais sinais reais seriam necessários para testar uma recarga verdadeira?
+
+Observação:
+Este exercício representa apenas estado de interface. Testing EV real também
+envolve eletrônica de potência, isolamento, temperatura, comunicação, BMS,
+infraestrutura, compatibilidade, segurança e comportamento sob falhas.
+
+-------------------------------------------------------------------------------
+CT-SHOW-005 — Validar histórico, rotação e reinicialização
+-------------------------------------------------------------------------------
+
+Objetivo:
+Compreender rastreabilidade e ciclo de vida verificando a relação entre ações,
+estado apresentado, histórico limitado e recriação da Activity.
+
+Prioridade: P1 alto no aplicativo educacional
+Tipo: funcional manual / integração de interface / ciclo de vida
+Área: showcase / arquitetura e diagnóstico
+Riscos cobertos:
+
+- Interface e regra divergirem após uma ação.
+- Estado ser perdido em mudança de configuração.
+- Histórico crescer sem limite ou apresentar ordem incorreta.
+- Reinicialização deixar resíduos de um cenário anterior.
+
+Pré-condições:
+Nova execução do aplicativo sem ações anteriores.
+
+Passos e resultados esperados:
+
+1. Localizar Histórico de eventos.
+   Esperado: existe apenas #1 Simulação iniciada.
+2. Ligar acessórios, ligar ignição e deixar o veículo pronto.
+   Esperado: cada ação gera uma entrada; a mais recente aparece no topo.
+3. Selecionar D, acelerar até 20 km/h e abrir a porta.
+   Esperado: estado, alerta e histórico representam as ações na mesma ordem
+   lógica; abrir a porta é o evento mais recente.
+4. Registrar energia, marcha, velocidade, bateria, porta e número do último
+   evento; então girar a tela.
+   Esperado: todos esses valores e o histórico permanecem após a recriação.
+5. Frear até zero, fechar a porta, selecionar P e alternar o cinto várias vezes
+   até produzir mais de oito eventos no total.
+   Esperado: a tela exibe somente os oito mais recentes, sem duplicar números;
+   os eventos mais antigos deixam de aparecer.
+6. Pressionar Reiniciar simulação.
+   Esperado: Desligado, P, 0 km/h, 78%, porta fechada, cinto afivelado,
+   carregador desconectado e nenhum alerta ativo.
+7. Observar o histórico após reiniciar.
+   Esperado: contém somente #1 Simulação reiniciada.
+8. Girar novamente a tela.
+   Esperado: o estado reiniciado e seu único evento permanecem.
+9. Encerrar o aplicativo pelo sistema e forçar a morte do processo; depois
+   abrir novamente. Executar somente se souber usar essa ação com segurança.
+   Esperado: uma nova simulação começa; persistência após morte do processo não
+   faz parte desta entrega.
+
+Resultado observado:
+[Preencher durante a validação]
+
+Status: Não executado pela responsável
+Ambiente/build: [Preencher]
+Evidências: [Captura antes/depois da rotação e após reiniciar]
+Defeito relacionado: [Preencher se necessário]
+
+Perguntas para aprendizado após executar:
+
+1. Qual é a diferença entre estado da tela e evento?
+2. Por que manter a regra também no ViewModel se o botão já está desabilitado?
+3. O que uma rotação normalmente faz com uma Activity Android?
+4. Por que limitar o histórico?
+5. O que seria necessário para sobreviver à morte do processo?
+
+Observação:
+O histórico ajuda no exercício, mas não substitui logs técnicos com tempo,
+origem, correlação, privacidade e política de retenção definidos.

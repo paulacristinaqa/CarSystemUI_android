@@ -1,0 +1,854 @@
+PLANEJAMENTO DO ÉPICO E BACKLOG — CARSYSTEMUI
+Versão: 1.0
+Idioma: Português
+Status: Proposta inicial
+
+===============================================================================
+1. COMO USAR ESTE DOCUMENTO
+===============================================================================
+
+Este documento descreve um épico e um backlog inicial no formato que poderia ser
+cadastrado no Jira. Ele serve como orientação de trabalho; não significa que os
+itens já foram criados no Jira.
+
+Hierarquia utilizada:
+
+  Épico
+    └── História de Usuário (US)
+          └── Tarefas técnicas
+
+Cada item contém objetivo, contexto, conteúdo, critérios de aceitação e
+evidências esperadas. Antes de iniciar uma história, seu escopo e sua prioridade
+devem ser refinados com a equipe.
+
+REGRA DE APRENDIZADO E AUTOMAÇÃO
+
+Antes de criar qualquer teste automatizado — funcional, não funcional,
+integração, regressão, acessibilidade, segurança, confiabilidade ou performance
+— deve ser apresentada ao responsável uma explicação inicial contendo:
+
+1. o que será testado e qual risco o teste cobre;
+2. qual tipo e nível de teste são adequados;
+3. por que automatizar e por que não manter apenas um teste manual;
+4. qual ferramenta, estrutura e ambiente serão utilizados;
+5. como o teste será organizado e como ler seu código;
+6. como preparar dados, dublês, dispositivo ou emulador;
+7. como executar, interpretar falhas e investigar resultados;
+8. limitações, falsos positivos e custo de manutenção;
+9. um exemplo pequeno, explicado passo a passo;
+10. confirmação explícita para começar a implementação.
+
+Nenhum teste automatizado novo deve ser implementado antes dessa etapa
+educacional e da confirmação.
+
+===============================================================================
+2. ÉPICO
+===============================================================================
+
+Título:
+Preparar, compreender, validar e evoluir a qualidade do CarSystemUI para AAOS
+
+Descrição:
+Como equipe responsável pelo CarSystemUI, queremos estabelecer uma base
+reproduzível de documentação, build, implantação, testes e qualidade para que o
+componente possa ser modificado com segurança, suas funcionalidades possam ser
+verificadas em diferentes configurações automotivas e o conhecimento de testing
+seja construído progressivamente.
+
+Contexto:
+CarSystemUI é um componente privilegiado do Android Automotive OS. Ele substitui
+o SystemUI padrão em produtos automotivos, é compilado com Soong dentro de uma
+árvore AOSP completa e interage com serviços do Android, APIs automotivas,
+usuários, displays, janelas, notificações, privacidade, conectividade e HVAC.
+Uma falha pode comprometer navegação, informação ao condutor, troca de usuário,
+visibilidade de alertas ou estabilidade de uma superfície persistente do
+sistema.
+
+Objetivos do épico:
+
+- Tornar o projeto compreensível e reproduzível para novos participantes.
+- Confirmar build, instalação e inicialização em uma configuração AAOS conhecida.
+- Inventariar funcionalidades, riscos e cobertura de testes existente.
+- Criar uma estratégia de testes baseada em risco.
+- Definir testes manuais claros e evidências rastreáveis.
+- Ensinar os fundamentos antes de qualquer nova automação.
+- Evoluir gradualmente para testes automatizados sustentáveis.
+- Medir qualidade funcional e não funcional com critérios objetivos.
+- Estabelecer uma rotina de regressão e triagem de defeitos.
+
+Fora do escopo inicial:
+
+- Alterar comportamento funcional do CarSystemUI sem requisito aprovado.
+- Prometer compatibilidade com todos os produtos e hardwares automotivos.
+- Automatizar cenários sem explicação, desenho e autorização prévios.
+- Definir metas de performance sem obter uma linha de base do produto alvo.
+- Considerar testes existentes suficientes sem executar e analisar cobertura.
+
+Critérios de aceitação do épico:
+
+CA-01. O README principal descreve natureza, estrutura, build, testes e
+       implantação do projeto.
+CA-02. O ambiente AOSP/AAOS utilizado é documentado e o build CarSystemUI é
+       reproduzível.
+CA-03. Existe uma matriz de funcionalidades, riscos, níveis e tipos de teste.
+CA-04. Existe um caderno de testes manuais com pré-condições, passos, resultado
+       esperado e evidência.
+CA-05. As suítes existentes são executadas e seus resultados são registrados.
+CA-06. Lacunas de cobertura são priorizadas por risco, e não apenas por volume.
+CA-07. Toda automação nova respeita a etapa de explicação e confirmação.
+CA-08. Requisitos não funcionais possuem linha de base, métrica, ambiente e
+       tolerância definidos antes de aprovar ou reprovar.
+CA-09. Defeitos encontrados podem ser reproduzidos por outra pessoa usando a
+       evidência registrada.
+CA-10. Há uma rotina de regressão definida para mudanças e releases.
+
+Indicadores sugeridos:
+
+- Percentual de casos críticos executados e aprovados.
+- Quantidade de defeitos por severidade e taxa de reabertura.
+- Percentual de histórias com critérios testáveis antes da implementação.
+- Cobertura de riscos críticos por pelo menos um teste adequado.
+- Taxa de testes automatizados instáveis (flaky).
+- Tempo médio para detectar e diagnosticar regressões.
+- Tempo de inicialização, uso de memória, jank e crashes, após definição de
+  baseline e metas por produto.
+
+Definition of Ready para histórias:
+
+- Objetivo e valor compreendidos.
+- Dependências e produto AAOS alvo identificados.
+- Critérios de aceitação objetivos e testáveis.
+- Riscos de segurança veicular, privacidade e multiusuário avaliados.
+- Dados, dispositivo/emulador e RROs necessários conhecidos.
+- Dúvidas que alterem o resultado foram resolvidas.
+
+Definition of Done:
+
+- Implementação ou documento revisado.
+- Critérios de aceitação verificados.
+- Testes aplicáveis executados e evidências anexadas.
+- Regressão proporcional ao risco realizada.
+- Falhas conhecidas registradas com impacto.
+- Documentação atualizada.
+- Nenhum teste automatizado novo foi criado sem explicação e confirmação.
+
+===============================================================================
+3. BACKLOG — HISTÓRIAS E TAREFAS
+===============================================================================
+
+-------------------------------------------------------------------------------
+US-01 — Consolidar a documentação inicial do projeto
+-------------------------------------------------------------------------------
+
+História:
+Como novo integrante da equipe, quero compreender rapidamente o propósito, a
+estrutura e o fluxo de trabalho do CarSystemUI para conseguir preparar o
+ambiente e colaborar sem depender de conhecimento informal.
+
+Descrição e conteúdo:
+Documentar o papel do componente, módulos Soong, diretórios, pré-requisitos,
+build, testes, implantação em produto debuggable, personalização por RRO e
+licenciamento. Manter comandos compatíveis com uma árvore AOSP inicializada.
+
+Tarefas:
+
+T-01.1 Revisar o README principal contra Android.bp, manifests e TEST_MAPPING.
+T-01.2 Revisar o README de samples e validar comandos adb e placeholders.
+T-01.3 Manter um .gitignore que não esconda arquivos-fonte ou documentação.
+T-01.4 Adicionar links entre README, planejamento e caderno de testes.
+T-01.5 Definir responsável e periodicidade de revisão da documentação.
+
+Critérios de aceitação:
+
+CA-01. Uma pessoa sem contexto identifica que não se trata de app Gradle isolado.
+CA-02. Os módulos CarSystemUI, CarSystemUI-core, CarSystemUI-Shared,
+       CarSystemUITests e CarSystemUIRoboTests estão descritos corretamente.
+CA-03. Os comandos não contêm erros de digitação ou caminhos literais ambíguos.
+CA-04. Todos os arquivos README são rastreáveis pelo Git.
+CA-05. Links relativos funcionam no repositório.
+CA-06. A documentação distingue build, instalação, ativação de RRO e reinício.
+
+Evidências:
+Revisão por pares, saída de git diff --check e links navegáveis.
+
+-------------------------------------------------------------------------------
+US-02 — Tornar o ambiente AOSP/AAOS reproduzível
+-------------------------------------------------------------------------------
+
+História:
+Como pessoa desenvolvedora ou testadora, quero reproduzir o ambiente usado pela
+equipe para que resultados de build e teste possam ser comparados.
+
+Descrição e conteúdo:
+Registrar branch/tag do AOSP, produto e release_config do lunch, variante
+(preferencialmente userdebug para desenvolvimento), host, recursos mínimos,
+dispositivo/emulador, API, imagem e dependências específicas.
+
+Tarefas:
+
+T-02.1 Identificar a árvore AOSP e o caminho deste módulo.
+T-02.2 Registrar branch, revisão, lunch target e fingerprint da imagem.
+T-02.3 Validar source build/envsetup.sh e lunch.
+T-02.4 Documentar conexão adb, permissões, root/remount e limitações.
+T-02.5 Criar checklist de diagnóstico do ambiente.
+
+Critérios de aceitação:
+
+CA-01. Duas pessoas conseguem selecionar o mesmo alvo usando a documentação.
+CA-02. adb devices identifica o alvo e adb shell getprop retorna a fingerprint.
+CA-03. Variáveis ANDROID_BUILD_TOP e ANDROID_PRODUCT_OUT estão coerentes.
+CA-04. Dependências ausentes ou restrições do hardware estão registradas.
+CA-05. Nenhuma credencial, chave privada ou dado sensível é versionado.
+
+Evidências:
+Ficha do ambiente preenchida, comandos executados e versões registradas.
+
+-------------------------------------------------------------------------------
+US-03 — Validar o build inicial do CarSystemUI
+-------------------------------------------------------------------------------
+
+História:
+Como equipe, queremos obter um build limpo do CarSystemUI para estabelecer uma
+linha de base antes de realizar mudanças funcionais.
+
+Descrição e conteúdo:
+Executar o build Soong do módulo, registrar duração e resultado, classificar
+falhas de ambiente versus falhas de código e localizar os artefatos gerados.
+
+Tarefas:
+
+T-03.1 Executar m CarSystemUI no ambiente inicializado.
+T-03.2 Em caso de falha, preservar o primeiro erro relevante e contexto.
+T-03.3 Localizar APK e artefatos relacionados em ANDROID_PRODUCT_OUT.
+T-03.4 Repetir o build incremental sem alteração e registrar duração.
+T-03.5 Documentar solução de problemas comprovada.
+
+Critérios de aceitação:
+
+CA-01. O comando termina com sucesso no alvo suportado.
+CA-02. O artefato CarSystemUI é produzido para a partição esperada.
+CA-03. Não há erro novo de compilação, recursos, Dagger, lint ou empacotamento.
+CA-04. Data, revisão, alvo, comando e resultado são registrados.
+CA-05. Falhas não resolvidas possuem ticket com log e passo de reprodução.
+
+Evidências:
+Log do build, duração, caminho do artefato e identificação da revisão.
+
+-------------------------------------------------------------------------------
+US-04 — Implantar e realizar smoke test
+-------------------------------------------------------------------------------
+
+História:
+Como testador, quero iniciar o CarSystemUI compilado em um alvo AAOS para
+confirmar que o sistema permanece utilizável antes de testes aprofundados.
+
+Descrição e conteúdo:
+Implantar por flash ou adb sync system_ext em build compatível, reiniciar o
+SystemUI, observar inicialização e testar superfícies essenciais.
+
+Tarefas:
+
+T-04.1 Definir método de implantação suportado pelo alvo.
+T-04.2 Registrar imagem anterior e procedimento de recuperação.
+T-04.3 Implantar e reiniciar o serviço ou dispositivo.
+T-04.4 Executar smoke test do caderno.
+T-04.5 Coletar logcat, dumpsys e evidências de falhas.
+
+Critérios de aceitação:
+
+CA-01. O dispositivo conclui o boot sem bootloop.
+CA-02. O processo com.android.systemui permanece ativo.
+CA-03. Barras essenciais são exibidas e controles básicos respondem.
+CA-04. Não há crash, ANR ou reinício contínuo durante o smoke test.
+CA-05. Existe um procedimento comprovado de recuperação.
+
+Evidências:
+Fingerprint, horário da implantação, vídeo/capturas e trecho de logs.
+
+-------------------------------------------------------------------------------
+US-05 — Inventariar funcionalidades e riscos
+-------------------------------------------------------------------------------
+
+História:
+Como responsável por qualidade, quero mapear funcionalidades, integrações e
+riscos para testar primeiro o que pode causar maior impacto.
+
+Descrição e conteúdo:
+Mapear system bars, notificações, status/privacidade, volume, HVAC, usuários,
+keyguard, conectividade, telecom, displays, janelas, overlays, acessibilidade,
+localização e recuperação de falhas.
+
+Tarefas:
+
+T-05.1 Criar matriz funcional por área, ator, display e usuário.
+T-05.2 Identificar dependências de CarService, hardware e apps auxiliares.
+T-05.3 Avaliar probabilidade, impacto, detectabilidade e criticidade.
+T-05.4 Marcar riscos ligados à distração do condutor, privacidade e segurança.
+T-05.5 Associar cada risco a pelo menos uma técnica de teste.
+
+Critérios de aceitação:
+
+CA-01. Todas as áreas principais do README constam na matriz.
+CA-02. Cada risco possui causa, consequência e prioridade justificadas.
+CA-03. Cenários de condutor, passageiro, multiusuário e multidisplay são
+       considerados quando aplicáveis.
+CA-04. Os cinco riscos mais críticos possuem estratégia de mitigação e teste.
+CA-05. Itens não testáveis no ambiente atual estão explicitamente sinalizados.
+
+Evidências:
+Matriz revisada por desenvolvimento, produto e qualidade.
+
+-------------------------------------------------------------------------------
+US-06 — Avaliar as suítes de testes existentes
+-------------------------------------------------------------------------------
+
+História:
+Como equipe, queremos conhecer o que já é verificado para evitar duplicação e
+identificar lacunas reais.
+
+Descrição e conteúdo:
+Inventariar testes em tests/ e multivalentTests/, módulos Soong, anotações,
+dependências, tempo de execução, estabilidade e relação com requisitos.
+
+Tarefas:
+
+T-06.1 Executar atest CarSystemUIRoboTests.
+T-06.2 Executar atest CarSystemUITests em alvo compatível.
+T-06.3 Analisar o grupo carsysui-presubmit do TEST_MAPPING.
+T-06.4 Classificar testes por componente, nível, tipo e risco coberto.
+T-06.5 Identificar testes desabilitados, instáveis, lentos ou redundantes.
+T-06.6 Produzir relatório de cobertura de requisitos e riscos.
+
+Critérios de aceitação:
+
+CA-01. Cada suíte possui comando, ambiente, duração e resultado registrados.
+CA-02. Falhas são classificadas como produto, teste, ambiente ou indeterminadas.
+CA-03. Não se usa apenas cobertura de linhas para afirmar qualidade.
+CA-04. Lacunas críticas resultam em itens de backlog priorizados.
+CA-05. Testes instáveis possuem evidência de repetição e ticket próprio.
+
+Evidências:
+Relatórios do atest, logs e matriz requisito-risco-teste.
+
+-------------------------------------------------------------------------------
+US-07 — Estabelecer execução de testes manuais e exploratórios
+-------------------------------------------------------------------------------
+
+História:
+Como iniciante em testing, quero casos de teste claros e sessões exploratórias
+guiadas para aprender a observar comportamento, registrar evidências e relatar
+defeitos reproduzíveis.
+
+Descrição e conteúdo:
+Utilizar o caderno de testes deste repositório, executar primeiro smoke e
+caminhos críticos e evoluir para cenários alternativos, negativos e de
+recuperação.
+
+Tarefas:
+
+T-07.1 Preparar dispositivo, dados e ficha de execução.
+T-07.2 Executar casos P0 e P1.
+T-07.3 Realizar sessão exploratória com charter e limite de tempo.
+T-07.4 Registrar defeitos com passos, esperado, observado e evidências.
+T-07.5 Revisar resultados e registrar aprendizado.
+
+Critérios de aceitação:
+
+CA-01. Cada execução identifica build, ambiente, usuário, display e RROs.
+CA-02. Cada passo possui resultado observado, não apenas “passou”.
+CA-03. Casos bloqueados informam causa e não são marcados como aprovados.
+CA-04. Defeitos são reproduzíveis ou indicam claramente frequência e incerteza.
+CA-05. Dados pessoais são removidos de capturas e logs compartilhados.
+
+Evidências:
+Fichas preenchidas, capturas, logs e tickets de defeito.
+
+-------------------------------------------------------------------------------
+US-08 — Criar estratégia educacional de automação funcional
+-------------------------------------------------------------------------------
+
+História:
+Como aprendiz, quero compreender os níveis e as ferramentas de automação antes
+de escrever testes para conseguir mantê-los e interpretar suas falhas.
+
+Descrição e conteúdo:
+Ensinar pirâmide de testes, teste unitário/host, Robolectric, instrumentado,
+integração e ponta a ponta; escolher o menor nível que cubra o risco.
+
+Tarefas:
+
+T-08.1 Ministrar explicação inicial obrigatória da automação proposta.
+T-08.2 Ler, executar e explicar um teste existente pequeno.
+T-08.3 Demonstrar Arrange-Act-Assert e nomes orientados a comportamento.
+T-08.4 Explicar dublês: fake, stub, mock e spy.
+T-08.5 Projetar um primeiro teste sem implementá-lo.
+T-08.6 Implementar somente após confirmação explícita.
+T-08.7 Executar, provocar uma falha controlada e interpretar a mensagem.
+
+Critérios de aceitação:
+
+CA-01. O aprendiz consegue explicar qual risco o teste cobre.
+CA-02. A escolha do nível de teste e ferramenta está justificada.
+CA-03. Pré-condições, oráculos e dados estão definidos.
+CA-04. O teste é determinístico, isolado e legível.
+CA-05. O teste falha pela razão correta ao simular o defeito.
+CA-06. A implementação só começa após explicação e confirmação.
+
+Evidências:
+Resumo da aula, desenho do teste, confirmação e resultado da execução.
+
+-------------------------------------------------------------------------------
+US-09 — Planejar testes não funcionais e de performance
+-------------------------------------------------------------------------------
+
+História:
+Como equipe, queremos medir características não funcionais do CarSystemUI para
+detectar degradações perceptíveis e riscos de estabilidade.
+
+Descrição e conteúdo:
+Estabelecer baseline antes de metas. Avaliar inicialização, memória, CPU, frames
+lentos/jank, latência de interação, estabilidade prolongada, recuperação,
+consumo sob eventos frequentes e impacto de múltiplos displays/usuários.
+
+Tarefas:
+
+T-09.1 Explicar métricas, ruído, aquecimento, amostragem e percentis.
+T-09.2 Definir dispositivo, imagem, temperatura, carga e preparação.
+T-09.3 Selecionar jornadas e pontos de medição representativos.
+T-09.4 Medir baseline com repetições suficientes.
+T-09.5 Definir orçamento e tolerância com produto/engenharia.
+T-09.6 Projetar teste automatizado somente após explicação e confirmação.
+T-09.7 Registrar tendência e investigar regressões.
+
+Critérios de aceitação:
+
+CA-01. Métrica, unidade, ferramenta, cenário e ambiente são registrados.
+CA-02. Resultados incluem amostras, dispersão e percentis quando aplicáveis.
+CA-03. Há período de estabilização e controle das principais fontes de ruído.
+CA-04. Limites não são inventados; derivam de baseline e requisito aprovado.
+CA-05. Regressões são reproduzidas antes de abrir defeito.
+CA-06. Nenhuma automação de performance precede a explicação obrigatória.
+
+Evidências:
+Plano de medição, dados brutos, resumo estatístico e gráficos de tendência.
+
+-------------------------------------------------------------------------------
+US-10 — Avaliar acessibilidade, usabilidade e distração do condutor
+-------------------------------------------------------------------------------
+
+História:
+Como usuário do veículo, quero superfícies legíveis, alcançáveis e compreensíveis
+para interagir com segurança em diferentes condições.
+
+Descrição e conteúdo:
+Testar navegação por foco/controle rotativo quando suportado, leitor de tela,
+contraste, tamanho e truncamento, orientação, modo noturno, touch targets,
+feedback, tempo de interação e restrições relacionadas ao estado de condução.
+
+Tarefas:
+
+T-10.1 Definir perfis de usuário e meios de entrada suportados.
+T-10.2 Executar checklist manual de acessibilidade.
+T-10.3 Verificar idiomas longos, RTL, escalas de fonte e densidades suportadas.
+T-10.4 Testar modo claro/noturno e condições de contraste.
+T-10.5 Registrar possíveis distrações e fluxos excessivamente complexos.
+T-10.6 Planejar automação aplicável após etapa educacional.
+
+Critérios de aceitação:
+
+CA-01. Elementos interativos possuem identificação e estado compreensíveis.
+CA-02. O foco segue ordem previsível e não fica preso.
+CA-03. Conteúdo essencial não desaparece com configurações suportadas.
+CA-04. Ações bloqueadas durante condução apresentam comportamento coerente.
+CA-05. Resultados distinguem requisito legal, recomendação e preferência.
+
+Evidências:
+Checklist, capturas, gravações e configuração exata usada.
+
+-------------------------------------------------------------------------------
+US-11 — Avaliar robustez, segurança e privacidade
+-------------------------------------------------------------------------------
+
+História:
+Como ocupante do veículo, quero que o SystemUI preserve isolamento entre
+usuários, indique uso de sensores e se recupere de falhas sem expor dados.
+
+Descrição e conteúdo:
+Cobrir troca de usuário, bloqueio, permissões, chips de câmera/microfone/cast,
+notificações sensíveis, apps laterais, falha/reconexão de serviços e reinício do
+processo. Análise profunda de segurança deve envolver especialistas.
+
+Tarefas:
+
+T-11.1 Mapear dados e ações sensíveis por usuário e display.
+T-11.2 Testar troca de usuário e ausência de vazamento visual.
+T-11.3 Verificar indicadores de privacidade e transições.
+T-11.4 Simular indisponibilidade recuperável de serviços em ambiente seguro.
+T-11.5 Revisar componentes exportados e permissões com especialista.
+T-11.6 Planejar automação somente após explicação e aprovação.
+
+Critérios de aceitação:
+
+CA-01. Conteúdo de um usuário não aparece para outro sem autorização.
+CA-02. Uso de sensores é indicado conforme comportamento esperado.
+CA-03. Componentes sensíveis exigem permissões apropriadas.
+CA-04. Falhas recuperáveis não causam ciclo contínuo de crash.
+CA-05. Logs e evidências não expõem dados pessoais ou segredos.
+
+Evidências:
+Matriz de privacidade, logs sanitizados e revisão especializada.
+
+-------------------------------------------------------------------------------
+US-12 — Instituir regressão, triagem e melhoria contínua
+-------------------------------------------------------------------------------
+
+História:
+Como equipe, queremos uma rotina previsível de qualidade para detectar
+regressões cedo e aprender com cada falha.
+
+Descrição e conteúdo:
+Definir conjuntos smoke, presubmit, regressão completa e testes específicos por
+área; padronizar defeitos, severidade, reteste, fechamento e análise de causa.
+
+Tarefas:
+
+T-12.1 Classificar casos em P0, P1, P2 e P3.
+T-12.2 Definir quando cada suíte deve ser executada.
+T-12.3 Criar template de defeito e relatório de execução.
+T-12.4 Acompanhar instabilidade, duração e valor dos testes.
+T-12.5 Revisar o backlog após incidentes e releases.
+T-12.6 Remover ou corrigir testes sem valor ou persistentemente instáveis.
+
+Critérios de aceitação:
+
+CA-01. Mudanças possuem regressão proporcional às áreas afetadas.
+CA-02. Smoke P0 é curto, repetível e cobre disponibilidade básica.
+CA-03. Defeitos críticos bloqueiam a entrega segundo regra acordada.
+CA-04. Testes flaky não são simplesmente reexecutados até passar.
+CA-05. Métricas geram ações e não são usadas para punir pessoas.
+CA-06. O caderno e a matriz são atualizados quando o produto muda.
+
+Evidências:
+Calendário de execução, relatórios, dashboard e atas de revisão.
+
+===============================================================================
+4. PRIORIZAÇÃO SUGERIDA
+===============================================================================
+
+Fase 1 — Base:
+US-01, US-02, US-03 e US-04.
+
+Fase 2 — Conhecimento e teste manual:
+US-05, US-06 e US-07.
+
+Fase 3 — Formação e automação orientada por risco:
+US-08, começando por um teste existente e um primeiro caso pequeno.
+
+Fase 4 — Qualidade ampla:
+US-09, US-10 e US-11.
+
+Fase 5 — Operação contínua:
+US-12.
+
+Próximo item recomendado:
+Executar US-02 para registrar o ambiente AOSP/AAOS real. Sem essa informação,
+builds e testes posteriores não serão plenamente reproduzíveis.
+
+-------------------------------------------------------------------------------
+US-13 — Criar simulador educacional de estados do veículo
+-------------------------------------------------------------------------------
+
+Status:
+Implementado; aguardando validação manual da responsável.
+
+História:
+Como aprendiz de Automotive System Testing, quero controlar estados simulados
+de energia do veículo em um aplicativo Android executável para compreender
+transições, resultados observáveis e riscos antes de usar um ambiente AAOS real.
+
+Descrição e conteúdo:
+Evoluir o módulo showcase com uma máquina de estados simplificada e uma tela que
+apresente Desligado, Acessórios, Ignição ligada e Pronto para conduzir. Exibir
+sinais fictícios de velocidade, marcha e bateria sem sugerir integração com
+hardware, CarService ou rede veicular.
+
+Fora do escopo:
+
+- Ler propriedades reais do veículo.
+- Simular movimento, falhas ou condições críticas de segurança.
+- Alterar o módulo privilegiado CarSystemUI da raiz.
+- Criar testes automatizados antes da explicação e autorização previstas.
+
+Tarefas:
+
+T-13.1 Modelar estados e transições de energia em Kotlin.
+T-13.2 Criar controles para avançar na sequência e desligar o veículo.
+T-13.3 Apresentar sinais simulados coerentes com o estado atual.
+T-13.4 Identificar visualmente que os dados são educacionais e simulados.
+T-13.5 Documentar estrutura do código e validação manual.
+T-13.6 Compilar o APK de debug e registrar o resultado.
+
+Critérios de aceitação:
+
+CA-01. O aplicativo inicia no estado Desligado.
+CA-02. O avanço segue somente Desligado -> Acessórios -> Ignição -> Pronto.
+CA-03. No estado Pronto, não é possível avançar para um estado inexistente.
+CA-04. Desligar retorna de qualquer estado ativo para Desligado.
+CA-05. Marcha e bateria ficam indisponíveis até a ignição ser ligada.
+CA-06. A tela informa que os sinais não são provenientes de veículo real.
+CA-07. O conteúdo permanece acessível em uma tela menor por meio de rolagem.
+CA-08. O build debug termina sem erros.
+CA-09. Nenhum teste automatizado novo é introduzido nesta entrega.
+
+Evidências esperadas:
+APK debug, resultado do build, captura de cada estado e registro do CT-SHOW-001.
+
+-------------------------------------------------------------------------------
+US-14 — Simular marcha, velocidade e intertravamentos básicos
+-------------------------------------------------------------------------------
+
+Status:
+Implementado; aguardando validação manual da responsável.
+
+História:
+Como aprendiz de Automotive System Testing, quero simular marcha e velocidade
+com regras de bloqueio para praticar testes positivos, negativos, de limite e
+de transição de estados em uma interface automotiva.
+
+Descrição e conteúdo:
+Adicionar ao showcase as marchas P, R, N e D, aceleração e frenagem em passos de
+10 km/h e mensagens que expliquem por que uma ação está indisponível. Aplicar
+regras simples para impedir aceleração em P/N, troca de marcha em movimento e
+desligamento fora de P ou acima de 0 km/h.
+
+Fora do escopo:
+
+- Reproduzir uma transmissão, frenagem ou dinâmica veicular real.
+- Representar torque, inclinação, regeneração ou sentido físico de movimento.
+- Ler ou escrever sinais em ECU, VHAL, CarService ou rede CAN.
+- Tratar essas regras educacionais como requisito de segurança homologado.
+- Criar testes automatizados nesta entrega.
+
+Tarefas:
+
+T-14.1 Modelar as marchas e reunir os sinais no estado da simulação.
+T-14.2 Adicionar seleção de P/R/N/D com bloqueio em movimento.
+T-14.3 Adicionar aceleração e frenagem com limites de 0 e 120 km/h.
+T-14.4 Impedir aceleração fora de D/R.
+T-14.5 Impedir desligamento até o veículo parar e retornar a P.
+T-14.6 Exibir orientação contextual para cada bloqueio.
+T-14.7 Documentar e compilar a entrega.
+
+Critérios de aceitação:
+
+CA-01. Os controles de condução só ficam disponíveis no estado Pronto.
+CA-02. Com velocidade zero, é possível selecionar P, R, N ou D.
+CA-03. A aceleração só fica disponível em D ou R.
+CA-04. Cada acionamento de aceleração aumenta 10 km/h até o máximo de 120 km/h.
+CA-05. Cada frenagem reduz 10 km/h sem produzir valor negativo.
+CA-06. Nenhuma marcha pode ser trocada enquanto a velocidade for maior que zero.
+CA-07. O desligamento exige velocidade zero e marcha P.
+CA-08. A tela orienta como remover o bloqueio do desligamento.
+CA-09. O estado Desligado restaura P e 0 km/h.
+CA-10. O build debug termina sem erros e sem novos testes automatizados.
+
+Evidências esperadas:
+APK debug, saída do build e registro manual do CT-SHOW-002.
+
+-------------------------------------------------------------------------------
+US-15 — Exibir alertas combinados de porta e cinto
+-------------------------------------------------------------------------------
+
+Status:
+Implementado; aguardando validação manual da responsável.
+
+História:
+Como aprendiz de Automotive System Testing, quero combinar sinais simulados de
+porta, cinto, energia e velocidade para aprender a validar priorização e
+coexistência de alertas por meio de uma tabela de decisão.
+
+Descrição e conteúdo:
+Adicionar controles para porta do motorista e cinto, calcular alertas a partir
+do estado completo e apresentar severidade, título e orientação. Elevar alertas
+de atenção para críticos quando houver movimento e manter alertas simultâneos
+visíveis e ordenados.
+
+Fora do escopo:
+
+- Reproduzir textos, sons, temporizações ou requisitos de um fabricante.
+- Declarar conformidade regulatória ou de segurança funcional.
+- Bloquear fisicamente a condução devido à porta ou ao cinto.
+- Integrar sensores, VHAL, ECU, CAN ou hardware.
+- Criar testes automatizados nesta entrega.
+
+Tarefas:
+
+T-15.1 Adicionar sinais simulados de porta e cinto ao estado.
+T-15.2 Derivar alertas usando energia e velocidade como condições adicionais.
+T-15.3 Classificar alertas como atenção ou crítico.
+T-15.4 Exibir todos os alertas ativos e ordenar os mais graves primeiro.
+T-15.5 Preservar condições físicas simuladas após o desligamento.
+T-15.6 Criar controles reproduzíveis para preparação dos cenários.
+T-15.7 Documentar tabela de decisão e executar build debug.
+
+Critérios de aceitação:
+
+CA-01. Sem condição anormal, a tela informa que não há alerta ativo.
+CA-02. Porta aberta a 0 km/h produz alerta de atenção.
+CA-03. Porta aberta acima de 0 km/h produz alerta crítico.
+CA-04. Cinto desafivelado só produz alerta quando o estado é Pronto.
+CA-05. Cinto desafivelado a 0 km/h em Pronto produz atenção.
+CA-06. Cinto desafivelado em movimento produz alerta crítico.
+CA-07. Porta e cinto podem produzir dois alertas simultâneos.
+CA-08. Alertas críticos aparecem antes de alertas de menor severidade.
+CA-09. Desligar preserva os sinais de porta e cinto, mas reavalia os alertas.
+CA-10. A interface identifica todos os dados como simulados.
+CA-11. O build termina sem erros e nenhum teste automatizado é adicionado.
+
+Evidências esperadas:
+APK debug, saída do build, tabela preenchida e registro do CT-SHOW-003.
+
+-------------------------------------------------------------------------------
+US-16 — Simular bateria de tração e recarga de veículo elétrico
+-------------------------------------------------------------------------------
+
+Status:
+Implementado; aguardando validação manual da responsável.
+
+História:
+Como aprendiz de Automotive System Testing, quero controlar bateria e recarga
+simuladas para praticar valores-limite, consumo, recuperação e intertravamentos
+específicos de uma interface para veículo elétrico.
+
+Descrição e conteúdo:
+Adicionar nível de bateria entre 0% e 100%, consumo durante aceleração, preparação
+manual de carga, conexão do carregador, recarga incremental e alertas de bateria
+baixa ou crítica. Impedir conexão fora de P/0 km/h e impedir condução enquanto o
+conector estiver ativo ou a bateria estiver vazia.
+
+Fora do escopo:
+
+- Simular BMS, ECU de carga, tensão, corrente, temperatura ou células.
+- Implementar ISO 15118, OCPP, CCS, CHAdeMO ou outro protocolo.
+- Calcular autonomia, curva, potência ou duração real de carregamento.
+- Usar as regras didáticas como requisito de um veículo de produção.
+- Integrar VHAL, CarService, CAN, hardware ou backend.
+- Criar testes automatizados nesta entrega.
+
+Tarefas:
+
+T-16.1 Adicionar carga e conexão do carregador ao estado da simulação.
+T-16.2 Exibir a bateria quando os sistemas estiverem ativos ou em recarga.
+T-16.3 Consumir 1% por incremento de aceleração simulada.
+T-16.4 Permitir preparação manual em passos de 10% sem sair de 0–100%.
+T-16.5 Gerar atenção em 20% e alerta crítico em 10%.
+T-16.6 Restringir conexão a P e 0 km/h.
+T-16.7 Bloquear marcha/movimento com cabo conectado ou carga igual a zero.
+T-16.8 Documentar limites e compilar o APK debug.
+
+Critérios de aceitação:
+
+CA-01. A carga inicial é 78%.
+CA-02. A carga nunca fica menor que 0% nem maior que 100%.
+CA-03. Cada aceleração válida reduz a carga em 1%.
+CA-04. Entre 21% e 100% não há alerta de bateria.
+CA-05. Entre 11% e 20% existe alerta de atenção para bateria baixa.
+CA-06. Entre 0% e 10% existe alerta crítico de bateria.
+CA-07. O carregador só pode ser conectado em P e 0 km/h.
+CA-08. Recarga em passos de 10% só fica disponível com carregador conectado.
+CA-09. Com o carregador conectado, marchas e movimento ficam indisponíveis.
+CA-10. Com carga igual a zero, a aceleração fica indisponível.
+CA-11. Desconectar não altera o percentual acumulado.
+CA-12. A tela informa os limites da simulação educacional.
+CA-13. O build termina sem erro e nenhum teste automatizado é criado.
+
+Evidências esperadas:
+APK debug, saída do build, capturas nos limites e registro do CT-SHOW-004.
+
+-------------------------------------------------------------------------------
+US-17 — Separar estado, regras e interface com histórico de eventos
+-------------------------------------------------------------------------------
+
+Status:
+Implementado; aguardando validação manual da responsável.
+
+História:
+Como pessoa desenvolvedora ou testadora, quero que estado, regras e interface
+tenham responsabilidades separadas e ações rastreáveis para compreender o fluxo
+do sistema, diagnosticar resultados e preparar futuras integrações.
+
+Descrição e conteúdo:
+Extrair modelos e cálculo de alertas da Activity, introduzir um ViewModel como
+dono do estado, validar novamente as regras na camada lógica e apresentar os
+oito eventos aceitos mais recentes. Preservar estado e histórico durante
+recriações de configuração e oferecer reinicialização explícita.
+
+Fora do escopo:
+
+- Persistir dados após encerramento do processo, reinstalação ou limpeza.
+- Enviar telemetria, arquivos, logs ou eventos para servidor/ATEP.
+- Implementar banco de dados, SavedStateHandle ou analytics.
+- Registrar tentativas recusadas feitas fora da interface.
+- Criar testes automatizados nesta entrega.
+
+Tarefas:
+
+T-17.1 Extrair modelos e cálculo de alertas para VehicleModels.kt.
+T-17.2 Criar VehicleSimulatorViewModel como única camada de alteração do estado.
+T-17.3 Revalidar pré-condições em cada ação, além de desabilitar controles.
+T-17.4 Manter histórico limitado aos oito últimos eventos aceitos.
+T-17.5 Exibir sequência e descrição dos eventos na interface.
+T-17.6 Preservar estado/histórico durante rotação por meio do ViewModel.
+T-17.7 Permitir reinicialização completa e documentar limites do ciclo de vida.
+T-17.8 Compilar o APK de debug.
+
+Critérios de aceitação:
+
+CA-01. Modelos não são declarados dentro da Activity.
+CA-02. A interface não altera VehicleSimulationState diretamente.
+CA-03. Toda ação aceita é processada pelo VehicleSimulatorViewModel.
+CA-04. Regras críticas também são verificadas no ViewModel.
+CA-05. O evento mais recente aparece primeiro com número sequencial.
+CA-06. O histórico mostra no máximo oito eventos.
+CA-07. Estado e histórico permanecem após rotação/recriação da Activity.
+CA-08. Reiniciar restaura energia desligada, P, 0 km/h, 78%, porta fechada,
+       cinto afivelado e carregador desconectado.
+CA-09. Após reiniciar, o histórico contém somente Simulação reiniciada como #1.
+CA-10. A documentação informa que não há persistência após morte do processo.
+CA-11. O build termina sem erro e nenhum teste automatizado é criado.
+
+Evidências esperadas:
+APK debug, saída do build, capturas antes/depois da rotação e CT-SHOW-005.
+
+===============================================================================
+5. TEMPLATE PARA NOVA HISTÓRIA
+===============================================================================
+
+Título:
+
+História:
+Como [ator], quero [capacidade], para [valor].
+
+Contexto:
+
+Escopo:
+
+Fora do escopo:
+
+Dependências:
+
+Riscos:
+
+Critérios de aceitação:
+CA-01.
+CA-02.
+
+Tarefas:
+T-XX.1.
+T-XX.2.
+
+Testes necessários:
+
+Evidências:
+
+Definition of Done:

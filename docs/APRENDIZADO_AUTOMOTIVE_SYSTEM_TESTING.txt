@@ -1,0 +1,301 @@
+CADERNO DE APRENDIZADO — AUTOMOTIVE SYSTEM TESTING
+Versão: 1.0
+Início: 29/07/2026
+
+===============================================================================
+AULA 1 — SISTEMA SOB TESTE, AMBIENTE E PRIMEIRA EVIDÊNCIA
+===============================================================================
+
+Objetivo
+-------
+Entender o que estamos construindo, o que será testado e por que o emulador não
+equivale completamente a um veículo.
+
+1. Os dois produtos deste repositório
+-------------------------------------
+
+CarSystemUI de plataforma:
+
+- código AOSP real;
+- componente privilegiado do Android Automotive OS;
+- compilado por Soong dentro de uma árvore AOSP;
+- depende de CarService, VHAL, assinatura e permissões de sistema;
+- é o sistema real que desejamos estudar.
+
+Showcase:
+
+- aplicativo Android comum e executável pelo botão Run;
+- criado para aprendizado e demonstração visual;
+- simula estados automotivos;
+- não substitui nem afirma validar o CarSystemUI real;
+- prepara limites para integração futura com ATEP e simulador elétrico.
+
+2. SUT — System Under Test
+--------------------------
+
+SUT significa “sistema sob teste”.
+
+Na primeira etapa:
+
+  SUT = aplicativo CarSystemUI Showcase.
+
+Em etapas futuras:
+
+  SUT = CarSystemUI real executando em uma imagem AAOS.
+
+Essa identificação precisa estar presente em qualquer relatório. Um teste que
+passou no showcase não prova que o CarSystemUI de plataforma também passará.
+
+3. Ambiente de teste
+--------------------
+
+O ambiente inclui tudo que pode influenciar o resultado:
+
+- código e versão do build;
+- sistema operacional Android;
+- API level;
+- tipo de emulador ou hardware;
+- resolução e densidade;
+- usuário ativo;
+- idioma e modo noturno;
+- dados simulados;
+- conectividade;
+- overlays;
+- ferramentas utilizadas.
+
+Ambiente encontrado em 29/07/2026:
+
+- host Linux x86_64;
+- Java 17;
+- Android SDK configurado;
+- imagem Android Automotive API 33 instalada;
+- nenhum AVD criado;
+- KVM indisponível;
+- nenhum dispositivo conectado.
+
+Conclusão correta:
+O ambiente ainda não está pronto para executar a interface.
+
+Conclusão incorreta:
+“O aplicativo não funciona.”
+
+Ainda não executamos o aplicativo; portanto, não existe evidência para fazer essa
+afirmação.
+
+4. Teste manual versus automatizado
+-----------------------------------
+
+Teste manual:
+Uma pessoa prepara o cenário, executa as ações, observa e registra o resultado.
+
+Teste automatizado:
+Código ou ferramenta executa ações e verificações de forma repetível.
+
+Nesta etapa faremos teste manual. Nenhuma automação será criada antes da aula
+específica, do desenho do teste e da confirmação explícita do aprendiz.
+
+5. Primeiro objetivo de teste
+-----------------------------
+
+Objetivo:
+Confirmar que a fundação do showcase compila, instala e apresenta a tela inicial
+em um emulador Android Automotive.
+
+Riscos cobertos:
+
+- configuração Gradle inválida;
+- incompatibilidade entre Java, Gradle, plugin Android e SDK;
+- manifest incapaz de iniciar a Activity;
+- recurso ou classe ausente;
+- APK não instalável;
+- crash imediato ao abrir.
+
+Riscos ainda não cobertos:
+
+- comportamento real de CarSystemUI;
+- sinais CAN;
+- VHAL e CarService reais;
+- veículo elétrico;
+- múltiplos displays reais;
+- performance representativa;
+- segurança automotiva;
+- integração com ATEP.
+
+6. Oráculo de teste
+-------------------
+
+Oráculo é a fonte usada para decidir o resultado esperado.
+
+Para o primeiro smoke test, o esperado será definido pelo requisito simples:
+
+  “Ao iniciar o showcase, deve ser apresentada uma tela identificada como
+   CarSystemUI Showcase, sem encerramento inesperado.”
+
+7. Evidências planejadas
+------------------------
+
+- saída do build Gradle;
+- nome e fingerprint do emulador;
+- instalação concluída;
+- captura da tela inicial;
+- ausência de crash imediato no logcat;
+- ficha do CT-001 preenchida.
+
+8. Estados possíveis de uma execução
+------------------------------------
+
+APROVADO:
+Todos os resultados esperados do caso foram observados.
+
+REPROVADO:
+O sistema foi executado, mas algum resultado esperado não ocorreu.
+
+BLOQUEADO:
+Não foi possível executar por causa externa ao comportamento avaliado.
+
+NÃO EXECUTADO:
+O caso ainda não foi iniciado.
+
+Situação atual:
+BLOQUEADO para execução visual, pois não há AVD e o KVM está indisponível.
+
+===============================================================================
+PRIMEIRO CASO DIDÁTICO
+===============================================================================
+
+ID:
+LEARN-CT-001
+
+Título:
+Inicializar o CarSystemUI Showcase no emulador Automotive.
+
+Prioridade:
+P0 — smoke test.
+
+Pré-condições:
+
+- projeto Gradle criado;
+- dependências resolvidas;
+- build concluído;
+- AVD Automotive criado e iniciado;
+- adb identifica o emulador.
+
+Passos:
+
+1. Selecionar o módulo app no Android Studio.
+2. Selecionar o AVD Automotive.
+3. Acionar Run.
+4. Aguardar instalação e abertura.
+5. Observar a tela durante pelo menos 30 segundos.
+
+Resultado esperado:
+
+- build termina com sucesso;
+- APK é instalado;
+- Activity principal é aberta;
+- título “CarSystemUI Showcase” é visível;
+- aplicativo não encerra inesperadamente.
+
+Evidências:
+
+- saída do Run;
+- captura da tela;
+- identificação do AVD;
+- logcat somente se houver falha ou comportamento suspeito.
+
+Status atual:
+BLOQUEADO — aguardando criação do projeto, dependências e AVD.
+
+Próxima aula:
+Pirâmide de testes, smoke test, diferença entre falha de ambiente e defeito do
+produto, e leitura básica do logcat.
+
+===============================================================================
+REGISTRO DE EXECUÇÃO — 29/07/2026
+===============================================================================
+
+Atividade:
+Compilação inicial do showcase.
+
+Comando:
+
+  ./gradlew assembleDebug
+
+Resultado:
+APROVADO para o objetivo de build.
+
+Evidência:
+
+  BUILD SUCCESSFUL in 1m 33s
+  APK: showcase/app/build/outputs/apk/debug/app-debug.apk
+  package: com.example.carsystemui.showcase
+  versionName: 0.1.0
+  minSdk: 28
+  targetSdk: 36
+
+O que este resultado prova:
+
+- a configuração Gradle é válida no ambiente utilizado;
+- código Kotlin e Compose compilam;
+- Manifest e recursos são processados;
+- o APK de debug é produzido.
+
+O que este resultado não prova:
+
+- que o aplicativo instala;
+- que a Activity abre;
+- que a tela é renderizada;
+- que funciona em AAOS;
+- que não há crash durante execução;
+- que qualquer funcionalidade automotiva está correta.
+
+Situação do LEARN-CT-001:
+Permanece BLOQUEADO para execução completa. A pré-condição “build concluído” foi
+satisfeita, mas ainda precisamos criar e iniciar o AVD Automotive.
+
+===============================================================================
+RESULTADO DO PRIMEIRO SMOKE TEST — LEARN-CT-001
+===============================================================================
+
+Data:
+29/07/2026
+
+Ambiente:
+
+- AVD: CarSystemUI_API_33;
+- Android: 13 / API 33;
+- build: userdebug;
+- arquitetura: x86_64;
+- usuário Android: 10;
+- package: com.example.carsystemui.showcase;
+- versão do app: 0.1.0.
+
+Execução:
+
+1. AVD criado: APROVADO.
+2. Boot concluído: APROVADO.
+3. Alvo visível no adb: APROVADO.
+4. APK instalado: APROVADO.
+5. MainActivity iniciada: APROVADO.
+6. Título visível: APROVADO.
+7. Processo permaneceu ativo: APROVADO.
+8. Buffer de crashes sem falha do aplicativo: APROVADO.
+
+Resultado final:
+APROVADO.
+
+Evidência visual:
+
+  docs/evidence/2026-07-29-showcase-smoke.png
+
+Observações:
+
+- As barras superior e inferior pertencem ao SystemUI da imagem Automotive.
+- A área central pertence ao nosso aplicativo showcase.
+- O teste demonstra a fundação executável, não funcionalidades veiculares.
+- O tempo de cold start observado foi 488 ms, mas ainda não existe requisito,
+  amostragem ou controle experimental para classificá-lo como bom ou ruim.
+
+Novo estado:
+O bloqueio de ambiente foi removido. A próxima atividade pode construir a
+primeira tela automotiva sobre essa fundação.

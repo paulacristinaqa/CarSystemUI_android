@@ -1,0 +1,415 @@
+CADERNO DE APRENDIZADO — LINUX PARA ANDROID AUTOMOTIVE
+Versão: 1.0
+Início: 29/07/2026
+
+===============================================================================
+AULA 1 — CONHECER O AMBIENTE ANTES DE ALTERÁ-LO
+===============================================================================
+
+Objetivo
+-------
+Aprender a identificar o sistema, as ferramentas Android e as condições
+necessárias para compilar e executar um aplicativo.
+
+Princípio
+---------
+Antes de instalar, apagar ou alterar configurações, fazemos inspeções somente de
+leitura. Isso reduz riscos e cria um diagnóstico reproduzível.
+
+1. pwd — “print working directory”
+-----------------------------------
+
+Comando:
+
+  pwd
+
+O que faz:
+Mostra o diretório atual do terminal.
+
+Resultado neste projeto:
+
+  /home/renan/Documentos/CarSystemUI/carsystemsui_android
+
+Por que importa:
+Comandos como Gradle, Git e adb dependem do contexto. Executar um comando no
+diretório errado pode gerar arquivos no lugar errado ou operar em outro projeto.
+
+2. uname — identificar kernel e arquitetura
+--------------------------------------------
+
+Comando:
+
+  uname -srm
+
+Significado das opções:
+
+  -s  nome do kernel;
+  -r  versão do kernel;
+  -m  arquitetura da máquina.
+
+Resultado observado:
+
+  Linux 7.0.0-28-generic x86_64
+
+Interpretação:
+O host usa Linux de 64 bits para processadores x86_64. Essa arquitetura é
+compatível com a imagem x86_64 do emulador Automotive instalada.
+
+3. command -v — localizar um programa
+--------------------------------------
+
+Exemplos:
+
+  command -v java
+  command -v adb
+
+O que faz:
+Informa qual executável o shell usará. É preferível a assumir que uma ferramenta
+está instalada ou que o terminal encontrou a versão correta.
+
+4. java -version — verificar a JVM
+-----------------------------------
+
+Comando:
+
+  java -version
+
+Resultado observado:
+
+  OpenJDK 17.0.19
+
+Por que importa:
+O Gradle executa sobre a JVM e o Android Gradle Plugin exige versões compatíveis.
+Para o showcase usaremos Java 17.
+
+5. Variáveis de ambiente
+------------------------
+
+Comando:
+
+  printf '%s\n' "$ANDROID_HOME"
+
+Resultado observado:
+
+  /mnt/4b8153fe-40da-4cc2-ab46-8219a12f94fb/renan/Android/Sdk
+
+Conceito:
+Uma variável de ambiente é um nome associado a um valor disponível para os
+processos iniciados pelo shell. ANDROID_HOME indica onde está o Android SDK.
+
+Cuidados:
+
+- Aspas duplas preservam caminhos que possam conter espaços.
+- Não alterar ANDROID_HOME sem compreender qual SDK o Android Studio utiliza.
+- Nunca imprimir variáveis que possam conter senhas ou tokens.
+
+6. df — espaço disponível
+--------------------------
+
+Comando:
+
+  df -h .
+
+Significado:
+
+  df  mostra uso dos sistemas de arquivos;
+  -h  usa unidades legíveis, como GiB;
+  .   consulta o sistema de arquivos do diretório atual.
+
+Resultado observado:
+Cerca de 34 GiB disponíveis no sistema de arquivos do projeto.
+
+Por que importa:
+Gradle, SDKs, imagens de emulador e builds Android podem consumir vários
+gigabytes.
+
+7. AVD — Android Virtual Device
+-------------------------------
+
+Comando:
+
+  "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" list avd
+
+Resultado observado:
+Ainda não existe um AVD configurado.
+
+Diferença importante:
+
+- System image: arquivos do sistema Android usados como modelo.
+- AVD: configuração concreta de um dispositivo virtual que usa uma imagem.
+- Emulator: programa que inicia e executa o AVD.
+
+A imagem android-33/android-automotive/x86_64 está instalada, mas ainda
+precisamos criar um AVD.
+
+8. KVM — aceleração de virtualização no Linux
+---------------------------------------------
+
+Comando:
+
+  "$ANDROID_HOME/emulator/emulator" -accel-check
+
+Resultado observado:
+
+  /dev/kvm is not found
+
+Interpretação inicial:
+Dentro do sandbox, o emulador não encontrou a interface KVM.
+
+Possíveis causas:
+
+- virtualização VT-x/AMD-V desabilitada no BIOS/UEFI;
+- módulo KVM não carregado;
+- usuário sem permissão para /dev/kvm;
+- execução dentro de ambiente que não expõe virtualização.
+
+Regra de segurança:
+Não instalaremos pacotes nem mudaremos BIOS, módulos do kernel ou grupos de
+usuário sem explicar a ação e obter autorização.
+
+Verificação complementar:
+Ao executar a mesma inspeção com acesso autorizado ao host, o resultado foi:
+
+  KVM (version 12) is installed and usable.
+
+Conclusão:
+O Linux do host está configurado corretamente. A primeira falha ocorreu porque o
+sandbox isola dispositivos do sistema. Não foi necessário alterar BIOS, instalar
+pacotes ou mudar permissões.
+
+===============================================================================
+COMANDOS DESTA AULA — RESUMO
+===============================================================================
+
+  pwd
+  uname -srm
+  command -v java
+  java -version
+  printf '%s\n' "$ANDROID_HOME"
+  df -h .
+  "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" list avd
+  "$ANDROID_HOME/emulator/emulator" -accel-check
+
+Exercício sugerido:
+Executar os comandos um por vez, tentar explicar o resultado com suas próprias
+palavras e anotar qualquer saída diferente.
+
+Próxima aula:
+Estrutura de diretórios, arquivos Gradle, permissões de execução e diferença
+entre caminho absoluto e relativo.
+
+===============================================================================
+AULA 2 — PRIMEIRO BUILD COM O GRADLE WRAPPER
+===============================================================================
+
+Data:
+29/07/2026
+
+1. cd — mudar o diretório atual
+--------------------------------
+
+Comando equivalente ao utilizado:
+
+  cd showcase
+
+O que faz:
+Muda o diretório atual para a raiz do projeto executável. O arquivo gradlew está
+nesse diretório.
+
+2. ./gradlew — executar um arquivo do diretório atual
+-----------------------------------------------------
+
+Comando:
+
+  ./gradlew assembleDebug
+
+Partes do comando:
+
+  ./          indica que o arquivo está no diretório atual;
+  gradlew     script do Gradle Wrapper para Linux/macOS;
+  assembleDebug
+              tarefa que compila e empacota a variante de desenvolvimento.
+
+Por que não digitamos apenas gradlew:
+Por segurança, o Linux normalmente não procura executáveis no diretório atual.
+“./” torna a intenção explícita.
+
+Por que usar o Wrapper:
+
+- fixa a versão do Gradle para o projeto;
+- reduz diferenças entre máquinas;
+- permite que Android Studio e terminal usem a mesma configuração;
+- baixa a distribuição quando ela ainda não existe.
+
+3. Permissão de execução
+------------------------
+
+Comando aplicado ao script:
+
+  chmod u+x showcase/gradlew
+
+Significado:
+
+  chmod  altera permissões;
+  u      usuário proprietário;
+  +x     adiciona permissão de execução.
+
+Não usamos permissões amplas como chmod 777. Elas concederiam mais acesso que o
+necessário.
+
+4. Cache temporário
+-------------------
+
+No ambiente controlado desta sessão foi utilizado:
+
+  GRADLE_USER_HOME=/tmp/carsystemui-showcase-gradle ./gradlew assembleDebug
+
+GRADLE_USER_HOME define onde o Gradle armazena distribuições e dependências.
+Usamos /tmp porque o sandbox não permitiu escrita em ~/.gradle.
+
+Em um terminal normal, geralmente basta:
+
+  ./gradlew assembleDebug
+
+5. Resultado
+------------
+
+  BUILD SUCCESSFUL in 1m 33s
+  37 actionable tasks: 37 executed
+
+APK produzido:
+
+  showcase/app/build/outputs/apk/debug/app-debug.apk
+
+Tamanho observado:
+
+  aproximadamente 28 MiB
+
+Interpretação:
+O código, Manifest e recursos foram compilados; dependências foram resolvidas; o
+APK de debug foi assinado e empacotado. Isso ainda não prova que o aplicativo
+abre corretamente, pois ele não foi instalado nem executado.
+
+6. Falhas observadas e classificação
+------------------------------------
+
+Falha 1:
+Sem permissão para criar o cache em ~/.gradle.
+
+Classificação:
+Ambiente de execução da ferramenta.
+
+Falha 2:
+Rede bloqueada no sandbox durante o download.
+
+Classificação:
+Ambiente/restrição de rede.
+
+Correção:
+Uso de diretório permitido e autorização explícita para baixar dependências.
+
+Aprendizado:
+Uma mensagem de falha durante o build não significa automaticamente defeito no
+código. Primeiro identificamos qual camada falhou.
+
+===============================================================================
+AULA 3 — AVD, ADB, INSTALAÇÃO E INICIALIZAÇÃO
+===============================================================================
+
+Data:
+29/07/2026
+
+1. Criação do AVD
+-----------------
+
+Nome:
+
+  CarSystemUI_API_33
+
+Imagem:
+
+  system-images;android-33;android-automotive;x86_64
+
+Perfil:
+
+  automotive_1024p_landscape
+
+O AVD guarda a configuração de um dispositivo virtual. A imagem contém o sistema
+Android usado por ele.
+
+2. Inicialização
+----------------
+
+Comando conceitual:
+
+  emulator @CarSystemUI_API_33
+
+O caractere @ indica o nome de um AVD.
+
+Verificações realizadas:
+
+- espaço em disco: suficiente;
+- GPU: NVIDIA GeForce RTX 5060 Ti reconhecida;
+- KVM 12: disponível;
+- RAM escolhida pelo emulador: 2048 MiB;
+- ABI: x86_64.
+
+3. adb devices
+--------------
+
+Resultado:
+
+  emulator-5554  device
+
+Interpretação:
+
+- emulator-5554 é o número de série usado pelos comandos;
+- device significa que o Android respondeu e está autorizado;
+- não significa necessariamente que o boot terminou.
+
+4. sys.boot_completed
+---------------------
+
+Comando:
+
+  adb -s emulator-5554 shell getprop sys.boot_completed
+
+Resultado final:
+
+  1
+
+“adb shell” executa um comando dentro do Android, não no Linux do host.
+“getprop” lê uma propriedade do sistema Android.
+
+5. Instalação
+-------------
+
+Comando:
+
+  adb -s emulator-5554 install -r app-debug.apk
+
+Significado:
+
+  -s emulator-5554  seleciona o alvo;
+  install            instala o APK;
+  -r                 substitui uma versão existente preservando dados.
+
+Resultado:
+
+  Success
+
+6. Abertura da Activity
+-----------------------
+
+Foi utilizado “adb shell am start” para abrir explicitamente a MainActivity.
+“am” significa Activity Manager.
+
+Resultado:
+
+  Status: ok
+  LaunchState: COLD
+  TotalTime: 488 ms
+
+Cold start indica que o processo ainda não estava disponível para reutilização.
+O valor de 488 ms é apenas uma observação desta execução; não é ainda um teste
+formal de performance.
