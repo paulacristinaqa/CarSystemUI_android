@@ -171,8 +171,15 @@ Para validar arquitetura, ciclo de vida e rastreabilidade das ações, execute o
 Os testes automatizados do módulo cobrem o gateway, o mapeamento de telemetria,
 a fila persistente e as duas implementações de `VehiclePropertySource`.
 
-A verificação Windows mais recente executou os 18 testes sem falhas, gerou o
+A verificação Windows mais recente executou os 24 testes sem falhas, gerou o
 APK de debug e concluiu o lint com zero erros e 14 avisos não bloqueantes.
 
 Para validar inspeção, reenvio idempotente, descarte seletivo e esgotamento do
 trabalho em segundo plano, execute também o `CT-SHOW-009`.
+
+O Vehicle Gateway também consulta comandos `set_property` autorizados pelo ATEP.
+Cada comando possui alvo, lease e token de claim; somente propriedades
+explicitamente permitidas podem alterar o simulador. Valores fora dos limites,
+combinações inseguras e fontes AAOS somente leitura são rejeitados e
+reconhecidos ao ATEP. O fluxo completo `CT-SHOW-010` foi aprovado em um
+emulador Android Automotive API 35 conectado a uma pilha ATEP isolada.

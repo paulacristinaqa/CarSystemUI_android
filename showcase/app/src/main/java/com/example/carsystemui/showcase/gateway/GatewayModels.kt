@@ -1,5 +1,7 @@
 package com.example.carsystemui.showcase.gateway
 
+import com.example.carsystemui.showcase.VehicleSimulationState
+
 data class GatewayConfig(
     val baseUrl: String,
     val vehicleId: String,
@@ -92,4 +94,53 @@ interface PendingTelemetryStore {
 
 fun interface TelemetryTransport {
     fun send(event: GatewayTelemetryEvent): TelemetryDeliveryResult
+}
+
+data class GatewayVehicleCommand(
+    val commandId: String,
+    val claimToken: String,
+    val kind: String,
+    val property: String,
+    val value: String,
+    val valueKind: TelemetryValueKind,
+)
+
+sealed interface CommandClaimResult {
+    data object NoCommand : CommandClaimResult
+
+    data class Claimed(val command: GatewayVehicleCommand) : CommandClaimResult
+
+    data class RetryableFailure(val reason: String) : CommandClaimResult
+
+    data class Rejected(val reason: String) : CommandClaimResult
+}
+
+sealed interface CommandExecutionResult {
+    data class Applied(
+        val property: String,
+        val value: String,
+        val state: VehicleSimulationState,
+    ) : CommandExecutionResult
+
+    data class Rejected(
+        val errorCode: String,
+        val errorMessage: String,
+    ) : CommandExecutionResult
+}
+
+sealed interface CommandAcknowledgementResult {
+    data object Delivered : CommandAcknowledgementResult
+
+    data class RetryableFailure(val reason: String) : CommandAcknowledgementResult
+
+    data class Rejected(val reason: String) : CommandAcknowledgementResult
+}
+
+interface VehicleCommandTransport {
+    fun claim(): CommandClaimResult
+
+    fun acknowledge(
+        command: GatewayVehicleCommand,
+        execution: CommandExecutionResult,
+    ): CommandAcknowledgementResult
 }

@@ -29,4 +29,9 @@ object VehicleGatewayFactory {
             context,
             WorkManagerTelemetryRetryScheduler.workName(config().vehicleId),
         )
+
+    fun commandCoordinator(): VehicleCommandCoordinator {
+        val config = config()
+        return VehicleCommandCoordinator(HttpVehicleCommandTransport(config))
+    }
 }

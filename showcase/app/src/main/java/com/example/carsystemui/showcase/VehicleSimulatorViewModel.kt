@@ -7,13 +7,18 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.carsystemui.showcase.gateway.GatewaySyncStatus
+import com.example.carsystemui.showcase.gateway.CommandCycleResult
+import com.example.carsystemui.showcase.gateway.CommandExecutionResult
 import com.example.carsystemui.showcase.gateway.RejectedTelemetryEvent
 import com.example.carsystemui.showcase.gateway.VehicleGatewayFactory
 import com.example.carsystemui.showcase.vehicle.MutableVehiclePropertySource
 import com.example.carsystemui.showcase.vehicle.VehiclePropertySourceFactory
 import com.example.carsystemui.showcase.vehicle.VehiclePropertySourceStatus
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class VehicleSimulatorViewModel(application: Application) : AndroidViewModel(application) {
     var vehicleState by mutableStateOf(VehicleSimulationState())
@@ -33,6 +38,7 @@ class VehicleSimulatorViewModel(application: Application) : AndroidViewModel(app
     private val gatewayStore = VehicleGatewayFactory.store(application)
     private val gateway = VehicleGatewayFactory.create(application, gatewayStore)
     private val retryScheduler = VehicleGatewayFactory.retryScheduler(application)
+    private val commandCoordinator = VehicleGatewayFactory.commandCoordinator()
     private val propertySource = VehiclePropertySourceFactory.create(application)
     private val gatewayDispatcher = Dispatchers.IO.limitedParallelism(1)
     private var nextSequence = 2
@@ -56,6 +62,20 @@ class VehicleSimulatorViewModel(application: Application) : AndroidViewModel(app
                 vehicleState = current
                 if (current != previous) publishChanges(previous, current)
                 previous = current
+            }
+        }
+        if (VehicleGatewayFactory.config().isEnabled) {
+            viewModelScope.launch(gatewayDispatcher) {
+                while (isActive) {
+                    val result = commandCoordinator.pollOnce(propertySource.state.value) { updated ->
+                        val mutableSource = propertySource as? MutableVehiclePropertySource
+                            ?: return@pollOnce false
+                        mutableSource.update(updated)
+                        true
+                    }
+                    handleCommandResult(result)
+                    delay(COMMAND_POLL_INTERVAL_MS)
+                }
             }
         }
     }
@@ -196,8 +216,27 @@ class VehicleSimulatorViewModel(application: Application) : AndroidViewModel(app
         eventHistory = (listOf(SimulationEvent(nextSequence++, description)) + eventHistory).take(8)
     }
 
+    private suspend fun handleCommandResult(result: CommandCycleResult) {
+        val description = when (result) {
+            CommandCycleResult.NoCommand -> return
+            is CommandCycleResult.Deferred -> "Comando ATEP adiado: ${result.reason}"
+            is CommandCycleResult.GatewayRejected -> "Comando ATEP recusado: ${result.reason}"
+            is CommandCycleResult.Completed -> when (val execution = result.execution) {
+                is CommandExecutionResult.Applied ->
+                    "Comando ATEP aplicado: ${execution.property}=${execution.value}"
+                is CommandExecutionResult.Rejected ->
+                    "Comando ATEP rejeitado: ${execution.errorCode}"
+            }
+        }
+        withContext(Dispatchers.Main) { record(description) }
+    }
+
     override fun onCleared() {
         propertySource.stop()
         super.onCleared()
+    }
+
+    private companion object {
+        const val COMMAND_POLL_INTERVAL_MS = 5_000L
     }
 }

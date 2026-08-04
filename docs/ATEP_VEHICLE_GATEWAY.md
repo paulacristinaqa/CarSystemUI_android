@@ -70,7 +70,8 @@ X-ATEP-Module-Token: <raw-once module credential>
 ```
 
 The registered ATEP module must declare the capability
-`vehicle.telemetry.publish`.
+`vehicle.telemetry.publish`. To receive test commands, the same module also
+declares `vehicle.commands.consume`.
 
 Example body:
 
@@ -88,6 +89,29 @@ Example body:
 Mapped properties are `power_state`, `gear`, `vehicle_speed`,
 `driver_door_open`, `seatbelt_fastened`, `battery_state_of_charge`, and
 `charger_connected`.
+
+## Leased test-command delivery
+
+An authorized ATEP operator creates an idempotent `set_property` request for a
+specific vehicle and gateway module. The showcase polls the claim endpoint every
+five seconds while workload configuration is enabled:
+
+```http
+POST /api/v1/vehicles/{vehicle_id}/commands/claim
+POST /api/v1/vehicles/{vehicle_id}/commands/{command_id}/acknowledgement
+```
+
+A successful claim contains a 60-second lease and a high-entropy claim token.
+ATEP persists only its SHA-256 digest. The gateway acknowledges `succeeded` or
+`rejected`; if acknowledgement is interrupted, lease expiry permits replay of
+the idempotent property assignment.
+
+The Android executor accepts only `battery_level`, `speed_kmh`,
+`driver_door_open`, `seatbelt_fastened`, `charger_connected`, `gear`, and
+`power_state`. It validates data types, bounded values, and charging, speed,
+gear, and power-state invariants. Unknown properties and unsafe combinations are
+rejected with a stable reason. An explicit AAOS source remains read-only and is
+never silently replaced with simulator state.
 
 ## Vehicle property sources
 
@@ -143,10 +167,12 @@ The unit suite verifies property mapping, changed-value filtering, offline queue
 retention, stable identifiers during retry, rejected-event inspection, selective
 discard, manual recovery after exhaustion, fail-safe behavior when credentials
 are absent, simulator-source mutation, AAOS property conversion, state-of-charge
-calculation, unavailable-VHAL behavior, and bounded background-retry decisions.
+calculation, unavailable-VHAL behavior, bounded background-retry decisions,
+command allowlisting, safety invariants, read-only-source rejection, and
+acknowledgement recovery.
 
 The Windows verification run resolved WorkManager `2.11.2`, assembled the debug
-APK, passed all 18 unit tests with no failures or skipped tests, and completed
+APK, passed all 24 unit tests with no failures or skipped tests, and completed
 `lintDebug` with zero errors. Fourteen non-blocking warnings remain documented:
 the AAOS reflection compatibility bridge, KTX suggestions, available dependency
 updates, target level, Android backup rules, and the missing showcase icon.
@@ -157,16 +183,18 @@ updates, target level, Android backup rules, and the missing showcase icon.
   production workload-identity mechanism;
 - certificate pinning, mTLS, OAuth workload identity, and secret-manager delivery
   remain production-hardening work;
-- an AAOS emulator/system image is still required for live CarService/VHAL evidence;
+- live API 35 AAOS evidence now verifies source selection and read-only command rejection; accessible production-specific VHAL property coverage remains pending;
 - door and seatbelt signals remain simulator-only until area-aware property mapping is added;
 - the compatibility bridge uses the deprecated cross-version callback registration API;
 - runtime permission denial is reported by the source status and never replaced with simulated data.
 - a live process-death/reboot WorkManager run still requires emulator evidence;
 - rejected-event retry and discard are local operator actions and do not yet
   create a dedicated ATEP administrative audit record.
+- command polling is a bounded REST baseline; push/WebSocket test-run updates
+  and durable local acknowledgement buffering remain later increments.
 
 ## Next increment
 
-Introduce an area-aware property catalogue for doors and seats, migrate the
-platform build to typed `subscribePropertyEvents`, and attach immutable evidence
-to operator retry/discard decisions.
+Retain the passed `CT-SHOW-010` run as the baseline, then introduce an area-aware
+property catalogue for doors and seats, migrate the platform build to typed
+`subscribePropertyEvents`, and add WebSocket test-run status updates.
