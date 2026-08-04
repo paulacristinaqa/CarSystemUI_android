@@ -1,6 +1,7 @@
 package com.example.carsystemui.showcase
 
 import android.os.Bundle
+import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -33,13 +34,32 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.carsystemui.showcase.gateway.GatewayConnectionState
+import com.example.carsystemui.showcase.gateway.GatewaySyncStatus
+import com.example.carsystemui.showcase.gateway.RejectedTelemetryEvent
+import com.example.carsystemui.showcase.vehicle.VehiclePropertySourceMode
+import com.example.carsystemui.showcase.vehicle.VehiclePropertySourceStatus
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) {
+            requestPermissions(AAOS_READ_PERMISSIONS, AAOS_PERMISSION_REQUEST)
+        }
         setContent {
             CarSystemUIShowcaseApp()
         }
+    }
+
+    private companion object {
+        const val AAOS_PERMISSION_REQUEST = 100
+        val AAOS_READ_PERMISSIONS = arrayOf(
+            "android.car.permission.CAR_SPEED",
+            "android.car.permission.CAR_ENERGY",
+            "android.car.permission.CAR_ENERGY_PORTS",
+            "android.car.permission.CAR_POWERTRAIN",
+            "android.car.permission.CAR_INFO",
+        )
     }
 }
 
@@ -53,6 +73,10 @@ private fun CarSystemUIShowcaseApp(simulator: VehicleSimulatorViewModel = viewMo
             VehicleStatusScreen(
                 vehicleState = simulator.vehicleState,
                 eventHistory = simulator.eventHistory,
+                gatewayStatus = simulator.gatewayStatus,
+                rejectedTelemetryEvents = simulator.rejectedTelemetryEvents,
+                propertySourceStatus = simulator.propertySourceStatus,
+                simulationControlsEnabled = simulator.simulationControlsEnabled,
                 onAdvancePowerState = simulator::advancePowerState,
                 onPowerOff = simulator::powerOff,
                 onGearSelected = simulator::selectGear,
@@ -64,6 +88,9 @@ private fun CarSystemUIShowcaseApp(simulator: VehicleSimulatorViewModel = viewMo
                 onChargeAdded = simulator::addCharge,
                 onChargeRemoved = simulator::removeCharge,
                 onResetSimulation = simulator::resetSimulation,
+                onRetryGateway = simulator::retryGateway,
+                onRetryRejectedEvent = simulator::retryRejectedEvent,
+                onDiscardRejectedEvent = simulator::discardRejectedEvent,
             )
         }
     }
@@ -73,6 +100,10 @@ private fun CarSystemUIShowcaseApp(simulator: VehicleSimulatorViewModel = viewMo
 private fun VehicleStatusScreen(
     vehicleState: VehicleSimulationState,
     eventHistory: List<SimulationEvent>,
+    gatewayStatus: GatewaySyncStatus?,
+    rejectedTelemetryEvents: List<RejectedTelemetryEvent>,
+    propertySourceStatus: VehiclePropertySourceStatus?,
+    simulationControlsEnabled: Boolean,
     onAdvancePowerState: () -> Unit,
     onPowerOff: () -> Unit,
     onGearSelected: (Gear) -> Unit,
@@ -84,6 +115,9 @@ private fun VehicleStatusScreen(
     onChargeAdded: () -> Unit,
     onChargeRemoved: () -> Unit,
     onResetSimulation: () -> Unit,
+    onRetryGateway: () -> Unit,
+    onRetryRejectedEvent: (String) -> Unit,
+    onDiscardRejectedEvent: (String) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -101,33 +135,48 @@ private fun VehicleStatusScreen(
         ) {
             Header()
             PowerStateCard(vehicleState.powerState)
+            VehiclePropertySourceCard(propertySourceStatus)
             SimulatedSignals(vehicleState)
+            GatewayStatusCard(gatewayStatus, onRetryGateway)
+            RejectedTelemetryCard(
+                events = rejectedTelemetryEvents,
+                onRetry = onRetryRejectedEvent,
+                onDiscard = onDiscardRejectedEvent,
+            )
             AlertCenter(vehicleState)
-            PowerControls(
-                vehicleState = vehicleState,
-                onAdvancePowerState = onAdvancePowerState,
-                onPowerOff = onPowerOff,
-            )
-            DrivingControls(
-                vehicleState = vehicleState,
-                onGearSelected = onGearSelected,
-                onAccelerate = onAccelerate,
-                onBrake = onBrake,
-            )
-            ChargingControls(
-                vehicleState = vehicleState,
-                onChargerConnectionChanged = onChargerConnectionChanged,
-                onChargeAdded = onChargeAdded,
-                onChargeRemoved = onChargeRemoved,
-            )
-            VehicleConditionControls(
-                vehicleState = vehicleState,
-                onDriverDoorChanged = onDriverDoorChanged,
-                onSeatbeltChanged = onSeatbeltChanged,
-            )
-            EventHistoryCard(eventHistory, onResetSimulation)
+            if (simulationControlsEnabled) {
+                PowerControls(
+                    vehicleState = vehicleState,
+                    onAdvancePowerState = onAdvancePowerState,
+                    onPowerOff = onPowerOff,
+                )
+                DrivingControls(
+                    vehicleState = vehicleState,
+                    onGearSelected = onGearSelected,
+                    onAccelerate = onAccelerate,
+                    onBrake = onBrake,
+                )
+                ChargingControls(
+                    vehicleState = vehicleState,
+                    onChargerConnectionChanged = onChargerConnectionChanged,
+                    onChargeAdded = onChargeAdded,
+                    onChargeRemoved = onChargeRemoved,
+                )
+                VehicleConditionControls(
+                    vehicleState = vehicleState,
+                    onDriverDoorChanged = onDriverDoorChanged,
+                    onSeatbeltChanged = onSeatbeltChanged,
+                )
+                EventHistoryCard(eventHistory, onResetSimulation)
+            } else {
+                ReadOnlySourceNotice()
+            }
             Text(
-                text = "AMBIENTE EDUCACIONAL • DADOS NÃO PROVENIENTES DE UM VEÍCULO",
+                text = if (simulationControlsEnabled) {
+                    "AMBIENTE EDUCACIONAL • DADOS NÃO PROVENIENTES DE UM VEÍCULO"
+                } else {
+                    "MODO AAOS • PROPRIEDADES RECEBIDAS DO CARSERVICE/VHAL"
+                },
                 modifier = Modifier.fillMaxWidth(),
                 color = Color(0xFF718096),
                 fontSize = 12.sp,
@@ -136,6 +185,212 @@ private fun VehicleStatusScreen(
         }
     }
 }
+
+@Composable
+private fun VehiclePropertySourceCard(status: VehiclePropertySourceStatus?) {
+    val aaos = status?.mode == VehiclePropertySourceMode.ANDROID_AUTOMOTIVE
+    val color = when {
+        status == null -> Color(0xFF9FB0C3)
+        status.connected -> Color(0xFF55D68B)
+        else -> Color(0xFFFFC857)
+    }
+    val title = if (aaos) "Android Automotive / VHAL" else "Simulador local"
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF151C24)),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "Origem das propriedades",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(text = title, color = color, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = status?.detail ?: "Inicializando origem do veículo",
+                color = Color(0xFF9FB0C3),
+                fontSize = 13.sp,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReadOnlySourceNotice() {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF151C24)),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Text(
+            text = "Modo somente leitura: os controles locais foram removidos para não alterar " +
+                "evidências recebidas do veículo.",
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            color = Color(0xFFFFC857),
+            fontSize = 14.sp,
+        )
+    }
+}
+
+@Composable
+private fun GatewayStatusCard(
+    status: GatewaySyncStatus?,
+    onRetry: () -> Unit,
+) {
+    val state = status?.state
+    val color = when (state) {
+        GatewayConnectionState.SYNCHRONIZED -> Color(0xFF55D68B)
+        GatewayConnectionState.PENDING -> Color(0xFFFFC857)
+        GatewayConnectionState.REJECTED -> Color(0xFFFF6B6B)
+        GatewayConnectionState.DISABLED, null -> Color(0xFF9FB0C3)
+    }
+    val message = when (state) {
+        GatewayConnectionState.SYNCHRONIZED -> "Telemetria sincronizada com o ATEP."
+        GatewayConnectionState.PENDING -> if (status.retryExhausted) {
+            "Reenvio automático interrompido após ${status.retryAttempts} tentativa(s). " +
+                "Os ${status.pendingCount} evento(s) continuam preservados."
+        } else {
+            "Sem conexão: ${status.pendingCount} evento(s) preservado(s); " +
+                "reenvio em segundo plano agendado."
+        }
+        GatewayConnectionState.REJECTED ->
+            "ATEP rejeitou ${status.rejectedCount} evento(s). " +
+                if (status.pendingCount > 0) {
+                    "Outros ${status.pendingCount} aguardam sincronização."
+                } else {
+                    "Inspecione cada motivo antes de reenviar ou descartar."
+                }
+        GatewayConnectionState.DISABLED ->
+            "Gateway desativado. Configure ATEP_MODULE_ID e ATEP_MODULE_TOKEN no Gradle."
+        null -> "Inicializando o Vehicle Gateway."
+    }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF151C24)),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = "ATEP Vehicle Gateway",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(text = message, color = color, fontSize = 14.sp)
+            status?.lastError?.let { error ->
+                Text(text = error, color = Color(0xFF9FB0C3), fontSize = 12.sp)
+            }
+            if ((status?.pendingCount ?: 0) > 0) {
+                OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        if (status?.retryExhausted == true) {
+                            "Retomar e tentar agora"
+                        } else {
+                            "Tentar sincronizar novamente"
+                        },
+                        color = Color.White,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RejectedTelemetryCard(
+    events: List<RejectedTelemetryEvent>,
+    onRetry: (String) -> Unit,
+    onDiscard: (String) -> Unit,
+) {
+    if (events.isEmpty()) return
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF151C24)),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Text(
+                text = "Eventos rejeitados",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = "O event_id original será preservado se o evento for reenviado.",
+                color = Color(0xFF9FB0C3),
+                fontSize = 13.sp,
+            )
+            events.take(MAX_VISIBLE_REJECTED_EVENTS).forEach { rejected ->
+                val event = rejected.event
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFFF6B6B).copy(alpha = 0.10f), RoundedCornerShape(12.dp))
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(7.dp),
+                ) {
+                    Text(
+                        text = event.property,
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "Valor: ${event.value}${event.unit?.let { " $it" } ?: ""}",
+                        color = Color(0xFFCED8E3),
+                        fontSize = 13.sp,
+                    )
+                    Text(
+                        text = "Motivo: ${rejected.reason}",
+                        color = Color(0xFFFFC857),
+                        fontSize = 13.sp,
+                    )
+                    Text(
+                        text = "ID: ${event.eventId} • ${event.timestamp}",
+                        color = Color(0xFF9FB0C3),
+                        fontSize = 11.sp,
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Button(
+                            onClick = { onRetry(event.eventId) },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("Reenviar")
+                        }
+                        OutlinedButton(
+                            onClick = { onDiscard(event.eventId) },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("Descartar", color = Color.White)
+                        }
+                    }
+                }
+            }
+            if (events.size > MAX_VISIBLE_REJECTED_EVENTS) {
+                Text(
+                    text = "+ ${events.size - MAX_VISIBLE_REJECTED_EVENTS} evento(s) preservado(s)",
+                    color = Color(0xFF9FB0C3),
+                    fontSize = 13.sp,
+                )
+            }
+        }
+    }
+}
+
+private const val MAX_VISIBLE_REJECTED_EVENTS = 5
 
 @Composable
 private fun Header() {

@@ -4,6 +4,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+fun quotedBuildConfig(value: String): String =
+    "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
 android {
     namespace = "com.example.carsystemui.showcase"
     compileSdk = 36
@@ -14,6 +17,32 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+
+        buildConfigField(
+            "String",
+            "ATEP_BASE_URL",
+            quotedBuildConfig(providers.gradleProperty("ATEP_BASE_URL").orElse("http://10.0.2.2:8000").get()),
+        )
+        buildConfigField(
+            "String",
+            "ATEP_VEHICLE_ID",
+            quotedBuildConfig(providers.gradleProperty("ATEP_VEHICLE_ID").orElse("vehicle-001").get()),
+        )
+        buildConfigField(
+            "String",
+            "ATEP_MODULE_ID",
+            quotedBuildConfig(providers.gradleProperty("ATEP_MODULE_ID").orElse("").get()),
+        )
+        buildConfigField(
+            "String",
+            "ATEP_MODULE_TOKEN",
+            quotedBuildConfig(providers.gradleProperty("ATEP_MODULE_TOKEN").orElse("").get()),
+        )
+        buildConfigField(
+            "String",
+            "VEHICLE_PROPERTY_SOURCE",
+            quotedBuildConfig(providers.gradleProperty("VEHICLE_PROPERTY_SOURCE").orElse("simulator").get()),
+        )
     }
 
     buildTypes {
@@ -33,6 +62,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -49,6 +79,9 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2")
+    implementation("androidx.work:work-runtime-ktx:2.11.2")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
+    testImplementation("junit:junit:4.13.2")
 }
