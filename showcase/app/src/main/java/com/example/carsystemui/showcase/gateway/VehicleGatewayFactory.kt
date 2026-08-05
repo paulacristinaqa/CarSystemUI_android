@@ -2,8 +2,10 @@ package com.example.carsystemui.showcase.gateway
 
 import android.content.Context
 import com.example.carsystemui.showcase.BuildConfig
+import okhttp3.OkHttpClient
 
 object VehicleGatewayFactory {
+    private val httpClient by lazy { OkHttpClient() }
     fun config(): GatewayConfig = GatewayConfig(
         baseUrl = BuildConfig.ATEP_BASE_URL,
         vehicleId = BuildConfig.ATEP_VEHICLE_ID,
@@ -34,4 +36,13 @@ object VehicleGatewayFactory {
         val config = config()
         return VehicleCommandCoordinator(HttpVehicleCommandTransport(config))
     }
+
+    fun testRunLiveConfig(): TestRunLiveConfig = TestRunLiveConfig(
+        baseUrl = BuildConfig.ATEP_BASE_URL,
+        runId = BuildConfig.ATEP_TEST_RUN_ID,
+        accessToken = BuildConfig.ATEP_OPERATOR_TOKEN,
+    )
+
+    fun testRunLiveClient(onState: (TestRunLiveState) -> Unit): TestRunLiveUpdateClient =
+        TestRunLiveUpdateClient(testRunLiveConfig(), onState, httpClient)
 }

@@ -40,6 +40,16 @@ android {
         )
         buildConfigField(
             "String",
+            "ATEP_OPERATOR_TOKEN",
+            quotedBuildConfig(providers.gradleProperty("ATEP_OPERATOR_TOKEN").orElse("").get()),
+        )
+        buildConfigField(
+            "String",
+            "ATEP_TEST_RUN_ID",
+            quotedBuildConfig(providers.gradleProperty("ATEP_TEST_RUN_ID").orElse("").get()),
+        )
+        buildConfigField(
+            "String",
             "VEHICLE_PROPERTY_SOURCE",
             quotedBuildConfig(providers.gradleProperty("VEHICLE_PROPERTY_SOURCE").orElse("simulator").get()),
         )
@@ -81,6 +91,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2")
     implementation("androidx.work:work-runtime-ktx:2.11.2")
+    implementation("com.squareup.okhttp3:okhttp:5.3.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
