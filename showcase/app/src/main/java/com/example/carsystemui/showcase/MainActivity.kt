@@ -34,6 +34,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.carsystemui.showcase.dashboard.DashboardPanel
+import com.example.carsystemui.showcase.dashboard.DashboardViewModel
 import com.example.carsystemui.showcase.gateway.GatewayConnectionState
 import com.example.carsystemui.showcase.gateway.GatewaySyncStatus
 import com.example.carsystemui.showcase.gateway.RejectedTelemetryEvent
@@ -51,6 +54,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             CarSystemUIShowcaseApp()
         }
+    }
+
+    override fun onStop() {
+        ViewModelProvider(this)[DashboardViewModel::class.java].stop()
+        super.onStop()
     }
 
     private companion object {
@@ -143,6 +151,7 @@ private fun VehicleStatusScreen(
             SimulatedSignals(vehicleState)
             GatewayStatusCard(gatewayStatus, onRetryGateway)
             TestRunLiveCard(testRunLiveState)
+            DashboardPanel()
             RejectedTelemetryCard(
                 events = rejectedTelemetryEvents,
                 onRetry = onRetryRejectedEvent,
