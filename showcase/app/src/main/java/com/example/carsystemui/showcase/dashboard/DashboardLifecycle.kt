@@ -83,6 +83,7 @@ class DashboardLifecycle {
     }
 
     fun stop() = terminate(DashboardStatus.STOPPED)
+    fun expire() = terminate(DashboardStatus.AUTH_REQUIRED)
 
     private fun active(connection: Long) = connection == generation &&
         state.status in setOf(DashboardStatus.CONNECTING, DashboardStatus.LIVE, DashboardStatus.STALE)
