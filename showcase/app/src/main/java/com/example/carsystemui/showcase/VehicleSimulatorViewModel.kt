@@ -10,6 +10,7 @@ import com.example.carsystemui.showcase.gateway.GatewaySyncStatus
 import com.example.carsystemui.showcase.gateway.CommandCycleResult
 import com.example.carsystemui.showcase.gateway.CommandExecutionResult
 import com.example.carsystemui.showcase.gateway.RejectedTelemetryEvent
+import com.example.carsystemui.showcase.gateway.TestRunLiveState
 import com.example.carsystemui.showcase.gateway.VehicleGatewayFactory
 import com.example.carsystemui.showcase.vehicle.MutableVehiclePropertySource
 import com.example.carsystemui.showcase.vehicle.VehiclePropertySourceFactory
@@ -31,6 +32,8 @@ class VehicleSimulatorViewModel(application: Application) : AndroidViewModel(app
         private set
     var propertySourceStatus by mutableStateOf<VehiclePropertySourceStatus?>(null)
         private set
+    var testRunLiveState by mutableStateOf<TestRunLiveState?>(null)
+        private set
 
     val simulationControlsEnabled: Boolean
         get() = propertySource.supportsSimulationControls
@@ -39,11 +42,15 @@ class VehicleSimulatorViewModel(application: Application) : AndroidViewModel(app
     private val gateway = VehicleGatewayFactory.create(application, gatewayStore)
     private val retryScheduler = VehicleGatewayFactory.retryScheduler(application)
     private val commandCoordinator = VehicleGatewayFactory.commandCoordinator()
+    private val testRunLiveClient = VehicleGatewayFactory.testRunLiveClient { state ->
+        viewModelScope.launch { testRunLiveState = state }
+    }
     private val propertySource = VehiclePropertySourceFactory.create(application)
     private val gatewayDispatcher = Dispatchers.IO.limitedParallelism(1)
     private var nextSequence = 2
 
     init {
+        testRunLiveClient.start()
         propertySource.start()
         viewModelScope.launch {
             gatewayStore.observeSnapshot().collect { snapshot ->
@@ -232,6 +239,7 @@ class VehicleSimulatorViewModel(application: Application) : AndroidViewModel(app
     }
 
     override fun onCleared() {
+        testRunLiveClient.close()
         propertySource.stop()
         super.onCleared()
     }

@@ -37,6 +37,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.carsystemui.showcase.gateway.GatewayConnectionState
 import com.example.carsystemui.showcase.gateway.GatewaySyncStatus
 import com.example.carsystemui.showcase.gateway.RejectedTelemetryEvent
+import com.example.carsystemui.showcase.gateway.TestRunLiveConnection
+import com.example.carsystemui.showcase.gateway.TestRunLiveState
 import com.example.carsystemui.showcase.vehicle.VehiclePropertySourceMode
 import com.example.carsystemui.showcase.vehicle.VehiclePropertySourceStatus
 
@@ -76,6 +78,7 @@ private fun CarSystemUIShowcaseApp(simulator: VehicleSimulatorViewModel = viewMo
                 gatewayStatus = simulator.gatewayStatus,
                 rejectedTelemetryEvents = simulator.rejectedTelemetryEvents,
                 propertySourceStatus = simulator.propertySourceStatus,
+                testRunLiveState = simulator.testRunLiveState,
                 simulationControlsEnabled = simulator.simulationControlsEnabled,
                 onAdvancePowerState = simulator::advancePowerState,
                 onPowerOff = simulator::powerOff,
@@ -103,6 +106,7 @@ private fun VehicleStatusScreen(
     gatewayStatus: GatewaySyncStatus?,
     rejectedTelemetryEvents: List<RejectedTelemetryEvent>,
     propertySourceStatus: VehiclePropertySourceStatus?,
+    testRunLiveState: TestRunLiveState?,
     simulationControlsEnabled: Boolean,
     onAdvancePowerState: () -> Unit,
     onPowerOff: () -> Unit,
@@ -138,6 +142,7 @@ private fun VehicleStatusScreen(
             VehiclePropertySourceCard(propertySourceStatus)
             SimulatedSignals(vehicleState)
             GatewayStatusCard(gatewayStatus, onRetryGateway)
+            TestRunLiveCard(testRunLiveState)
             RejectedTelemetryCard(
                 events = rejectedTelemetryEvents,
                 onRetry = onRetryRejectedEvent,
@@ -182,6 +187,63 @@ private fun VehicleStatusScreen(
                 fontSize = 12.sp,
                 textAlign = TextAlign.Center,
             )
+        }
+    }
+}
+
+@Composable
+private fun TestRunLiveCard(state: TestRunLiveState?) {
+    val connection = state?.connection
+    val color = when (connection) {
+        TestRunLiveConnection.CONNECTED -> Color(0xFF55D68B)
+        TestRunLiveConnection.CONNECTING, TestRunLiveConnection.RECONNECTING -> Color(0xFFFFC857)
+        TestRunLiveConnection.ERROR -> Color(0xFFFF6B6B)
+        TestRunLiveConnection.DISABLED, null -> Color(0xFF9FB0C3)
+    }
+    val label = when (connection) {
+        TestRunLiveConnection.CONNECTED -> "CONNECTED"
+        TestRunLiveConnection.CONNECTING -> "CONNECTING"
+        TestRunLiveConnection.RECONNECTING -> "RECONNECTING"
+        TestRunLiveConnection.ERROR -> "ERROR"
+        TestRunLiveConnection.DISABLED -> "NOT CONFIGURED"
+        null -> "INITIALIZING"
+    }
+    val run = state?.testRun
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF151C24)),
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "ATEP Live Test Run",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(text = label, color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            if (run != null) {
+                Text(text = run.name, color = Color.White, fontSize = 16.sp)
+                Text(
+                    text = "${run.suite.uppercase()} • ${run.status.uppercase()} • " +
+                        "${run.progressPercent}% • v${run.version}",
+                    color = color,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                run.summary?.let { summary ->
+                    Text(text = summary, color = Color(0xFFCED8E3), fontSize = 13.sp)
+                }
+            } else {
+                Text(
+                    text = state?.detail ?: "Waiting for the configured ATEP test run.",
+                    color = Color(0xFF9FB0C3),
+                    fontSize = 13.sp,
+                )
+            }
         }
     }
 }
