@@ -79,6 +79,13 @@ class VehicleCommandExecutor {
                 "Property is not command-enabled: ${command.property}",
             )
         }
+        if (updated.speedKmh > 0 &&
+            (updated.powerState != VehiclePowerState.READY ||
+                updated.gear !in setOf(Gear.DRIVE, Gear.REVERSE) ||
+                updated.batteryLevel == 0 || updated.isChargerConnected)
+        ) {
+            return rejected("unsafe_vehicle_state", "Motion requires READY, a driving gear, battery and no charger")
+        }
         return CommandExecutionResult.Applied(command.property, command.value, updated)
     }
 
