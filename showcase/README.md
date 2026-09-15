@@ -1,5 +1,33 @@
 # CarSystemUI Showcase
 
+## ATEP integration
+
+The showcase includes the Vehicle Gateway and a `VehiclePropertySource` boundary.
+Changed properties from either the deterministic simulator or an Android
+Automotive `CarPropertyManager`/VHAL source are persisted locally and sent
+idempotently to the public ATEP telemetry API. Configuration, security boundaries,
+delivery behavior, and tests are documented in
+[ATEP Vehicle Gateway](../docs/ATEP_VEHICLE_GATEWAY.md).
+
+If immediate delivery fails, one connectivity-constrained WorkManager job per
+vehicle retries the persistent queue with bounded exponential backoff. Closing
+the activity does not remove the queued events or the scheduled work.
+
+The gateway card now reports when all eight background attempts are exhausted.
+Rejected events are listed individually with their property, value, timestamp,
+original identifier, and rejection reason. The operator may retry one event
+without changing its identity or discard only the selected local record.
+
+Select the source in the user-level Gradle properties file:
+
+```properties
+VEHICLE_PROPERTY_SOURCE=simulator
+```
+
+Use `aaos` for an Automotive emulator/device or `auto` to detect the device type.
+AAOS mode is read-only and removes the local controls so real observations cannot
+be confused with simulator evidence.
+
 Aplicativo educacional executável que apresenta, de forma simulada, conceitos
 visuais do CarSystemUI e de um veículo elétrico.
 
@@ -34,8 +62,9 @@ Desligado -> Acessórios -> Ignição ligada -> Pronto para conduzir
 ```
 
 Os botões permitem avançar pela sequência ou retornar ao estado desligado. A
-tela também apresenta velocidade, marcha e carga da bateria simuladas. Esses
-valores não vêm de hardware, de `CarService` nem de um veículo real.
+tela também apresenta velocidade, marcha e carga da bateria simuladas. No modo
+`aaos`, os sinais compatíveis passam a vir de `CarService`/VHAL e a tela deixa os
+controles locais indisponíveis.
 
 Quando o veículo chega ao estado **Pronto para conduzir**, uma segunda área
 permite selecionar `P`, `R`, `N` ou `D` e alterar a velocidade em passos de
@@ -139,5 +168,11 @@ Para praticar limites e estados de recarga de um veículo elétrico, execute o
 Para validar arquitetura, ciclo de vida e rastreabilidade das ações, execute o
 `CT-SHOW-005`.
 
-Não há testes automatizados novos neste módulo. Eles somente serão projetados
-após a etapa educacional e a confirmação explícita do responsável.
+Os testes automatizados do módulo cobrem o gateway, o mapeamento de telemetria,
+a fila persistente e as duas implementações de `VehiclePropertySource`.
+
+A verificação Windows mais recente executou os 18 testes sem falhas, gerou o
+APK de debug e concluiu o lint com zero erros e 14 avisos não bloqueantes.
+
+Para validar inspeção, reenvio idempotente, descarte seletivo e esgotamento do
+trabalho em segundo plano, execute também o `CT-SHOW-009`.
