@@ -21,7 +21,9 @@ class TestRunLiveUpdateClient(
     private var latest: LiveTestRun? = null
     private var retryAttempt = 0
 
+    @Synchronized
     fun start() {
+        if (closed || socket != null) return
         if (!config.isEnabled) {
             onState(
                 TestRunLiveState(
@@ -34,6 +36,7 @@ class TestRunLiveUpdateClient(
         connect(reconnecting = false)
     }
 
+    @Synchronized
     private fun connect(reconnecting: Boolean) {
         if (closed) return
         val url = config.streamUrl()
@@ -55,6 +58,7 @@ class TestRunLiveUpdateClient(
         socket = httpClient.newWebSocket(request, Listener())
     }
 
+    @Synchronized
     private fun reconnect(reason: String) {
         if (closed) return
         retryAttempt = (retryAttempt + 1).coerceAtMost(6)
@@ -69,19 +73,33 @@ class TestRunLiveUpdateClient(
         scheduler.schedule({ connect(reconnecting = true) }, delaySeconds, TimeUnit.SECONDS)
     }
 
+    @Synchronized
     override fun close() {
         closed = true
+        latest = null
         socket?.close(1000, "CarSystemUI stopped")
         scheduler.shutdownNow()
     }
 
-    private inner class Listener : WebSocketListener() {
-        override fun onOpen(webSocket: WebSocket, response: Response) {
+    @Synchronized
+    private fun denied() {
+        if (closed) return
+        close()
+        onState(TestRunLiveState(TestRunLiveConnection.ERROR, detail = "ATEP authorization denied. Sign in again."))
+    }
+
+    internal inner class Listener : WebSocketListener() {
+        override fun onOpen(webSocket: WebSocket, response: Response): Unit = synchronized(this@TestRunLiveUpdateClient) {
+            if (closed) {
+                webSocket.cancel()
+                return@synchronized
+            }
             retryAttempt = 0
             onState(TestRunLiveState(TestRunLiveConnection.CONNECTED, testRun = latest))
         }
 
-        override fun onMessage(webSocket: WebSocket, text: String) {
+        override fun onMessage(webSocket: WebSocket, text: String): Unit = synchronized(this@TestRunLiveUpdateClient) {
+            if (closed) return@synchronized
             try {
                 when (val message = TestRunUpdateParser.parse(text)) {
                     TestRunStreamMessage.Heartbeat ->
@@ -101,7 +119,7 @@ class TestRunLiveUpdateClient(
                     TestRunLiveState(
                         TestRunLiveConnection.ERROR,
                         testRun = latest,
-                        detail = error.message ?: "Invalid live test-run message.",
+                        detail = "Invalid live test-run message.",
                     ),
                 )
             }
@@ -112,11 +130,13 @@ class TestRunLiveUpdateClient(
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-            if (!closed) reconnect("ATEP closed the stream ($code).")
+            if (code in setOf(1008, 4401, 4403)) denied()
+            else reconnect("ATEP closed the stream ($code).")
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-            reconnect(t.message ?: "ATEP live stream failed.")
+            if (response?.code in setOf(401, 403)) denied()
+            else reconnect("ATEP live stream failed.")
         }
     }
 }
