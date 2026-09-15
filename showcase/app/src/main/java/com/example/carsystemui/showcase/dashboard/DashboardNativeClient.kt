@@ -19,7 +19,7 @@ class DashboardNativeClient(
     private val factory: WebSocket.Factory = OkHttpClient(),
     private val scheduler: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(),
     private val clockMs: () -> Long = { System.nanoTime() / 1_000_000 },
-) : AutoCloseable {
+) : DashboardConnection {
     private val lifecycle = DashboardLifecycle()
     private var token: String? = null
     private var expiresAt = 0L
@@ -30,7 +30,7 @@ class DashboardNativeClient(
     private var emitted: DashboardLifecycleState? = null
 
     @Synchronized
-    fun start(accessToken: String, expiresInSeconds: Long) {
+    override fun start(accessToken: String, expiresInSeconds: Long) {
         check(!disposed) { "Dashboard client is closed" }
         stop()
         require(expiresInSeconds in 1..86_400) { "Invalid dashboard session lifetime" }
